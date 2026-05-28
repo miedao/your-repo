@@ -1,3 +1,5 @@
+import { extension_settings, getContext } from '../../../extensions.js';
+
 const EXTENSION_NAME = 'tgww';
 // 使用 import.meta.url 动态获取当前路径，避免因安装目录不同导致 404
 const extensionBaseUrl = new URL('./', import.meta.url).href;
@@ -418,8 +420,8 @@ async function setupGameUI() {
 
 // Init
 console.log("[tgww] 插件开始加载...");
-if (!window.TGWW_Loaded) {
-    window.TGWW_Loaded = true;
+if (!window.TGWW_Loaded_v103) {
+    window.TGWW_Loaded_v103 = true;
     jQuery(async () => {
         try {
             loadSettings();
