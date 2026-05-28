@@ -5,8 +5,8 @@
   "optional": [],
   "js": "index.js",
   "css": "style.css",
-  "author": "Antigravity",
-  "version": "1.0.0",
+  "author": "miedao",
+  "version": "1.0.1",
   "homePage": "https://github.com/miedao/your-repo",
   "auto_update": true
 }

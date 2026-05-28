@@ -1,5 +1,6 @@
 import { extension_settings, getContext } from '../../../extensions.js';
 import { eventSource, event_types } from '../../../../script.js';
+import { registerSlashCommand } from '../../../slash-commands.js';
 import { callGenericPopup, POPUP_TYPE } from '../../../popup.js';
 
 const EXTENSION_NAME = 'tgww';
@@ -291,14 +292,14 @@ async function setupSettings() {
     }
 }
 
-// Inject Game Button
+// Inject Game Button and Slash Command
 async function setupGameUI() {
-    // Add Trigger Button to Chat area (e.g. next to send button)
-    const triggerBtn = $('<div id="tgww_open_btn" class="mes_button tgww-trigger" title="共感娃娃番外"><i class="fa-solid fa-user-astronaut"></i></div>');
+    // Add Trigger Button as a floating button in the bottom right, to avoid finding specific layout IDs
+    const triggerBtn = $('<div id="tgww_open_btn" title="共感娃娃番外" style="position:fixed; bottom:80px; right:20px; z-index:999; background:rgba(255,0,50,0.8); color:white; width:45px; height:45px; border-radius:50%; display:flex; justify-content:center; align-items:center; cursor:pointer; box-shadow:0 0 10px rgba(255,0,50,0.5); font-size:20px;"><i class="fa-solid fa-heart"></i></div>');
+    
     if(!extension_settings[EXTENSION_NAME].enabled) triggerBtn.hide();
     
-    // Injecting into Luker UI (near the send textarea wrapper)
-    $('#send_but').parent().append(triggerBtn);
+    $('body').append(triggerBtn);
 
     // Load Game HTML to body as an absolute overlay layer
     const gameHtmlStr = await $.get(`${extensionFolderPath}/game.html`);
@@ -306,7 +307,7 @@ async function setupGameUI() {
 
     const wrapper = $('#tgww_wrapper');
     
-    triggerBtn.on('click', () => {
+    const openGameUI = () => {
         wrapper.css({
             'display': 'flex',
             'position': 'fixed',
@@ -316,7 +317,15 @@ async function setupGameUI() {
             'justify-content': 'center',
             'align-items': 'center'
         });
-    });
+    };
+
+    triggerBtn.on('click', openGameUI);
+    
+    // Register slash command as an alternative trigger
+    registerSlashCommand('tgww', async () => {
+        openGameUI();
+        return '';
+    }, [], '打开共感娃娃番外互动界面');
 
     // Close on click outside
     wrapper.on('click', (e) => {
