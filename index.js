@@ -1,9 +1,5 @@
-import { extension_settings, getContext } from '../../../extensions.js';
-import { eventSource, event_types } from '../../../../script.js';
-import { registerSlashCommand } from '../../../slash-commands.js';
-
-const EXTENSION_NAME = 'tgww';
-const extensionFolderPath = `third-party/${EXTENSION_NAME}`;
+const EXTENSION_NAME = 'your-repo';
+const BASE_URL = new URL('./', import.meta.url).href;
 
 let gameState = { hr: 72, sus: 0, active: false, arrested: false };
 
@@ -15,17 +11,35 @@ const defaultSettings = {
     apiModel: ''
 };
 
+function getContextSafe() {
+    if (typeof getContext === 'function') return getContext();
+    if (window.getContext) return window.getContext();
+    if (window.SillyTavern && typeof window.SillyTavern.getContext === 'function') return window.SillyTavern.getContext();
+    return {};
+}
+
+function getSettings() {
+    const context = getContextSafe();
+    if (context && context.extension_settings) {
+        context.extension_settings[EXTENSION_NAME] = context.extension_settings[EXTENSION_NAME] || {};
+        return context.extension_settings[EXTENSION_NAME];
+    }
+    window.tgww_settings = window.tgww_settings || {};
+    return window.tgww_settings;
+}
+
 function loadSettings() {
-    extension_settings[EXTENSION_NAME] = extension_settings[EXTENSION_NAME] || {};
-    Object.assign(extension_settings[EXTENSION_NAME], {
+    const settingsObj = getSettings();
+    Object.assign(settingsObj, {
         ...defaultSettings,
-        ...extension_settings[EXTENSION_NAME],
+        ...settingsObj,
     });
+    return settingsObj;
 }
 
 function saveSettings() {
-    const context = getContext();
-    if (context.saveSettingsDebounced) {
+    const context = getContextSafe();
+    if (context && context.saveSettingsDebounced) {
         context.saveSettingsDebounced();
     } else if (typeof window.saveSettingsDebounced === 'function') {
         window.saveSettingsDebounced();
@@ -34,6 +48,7 @@ function saveSettings() {
 
 function updateUI() {
     const $ = window.jQuery;
+    if (!$) return;
     $('#tgww_hr_val').text(gameState.hr);
     $('#tgww_suspicion_val').text(gameState.sus);
     $('#tgww_suspicion_bar').css('width', `${gameState.sus}%`);
@@ -57,6 +72,7 @@ function updateUI() {
 
 function addLog(action, result) {
     const $ = window.jQuery;
+    if (!$) return;
     const logs = $('#tgww_logs');
     const entry = $(`<div class="tgww-log-entry">
         <strong>动作:</strong> ${action}<br/>
@@ -67,6 +83,7 @@ function addLog(action, result) {
 
 function showToast(msg) {
     const $ = window.jQuery;
+    if (!$) return;
     const t = $('#tgww_toast');
     t.text(msg).addClass('show');
     setTimeout(() => t.removeClass('show'), 3000);
@@ -76,6 +93,7 @@ function triggerArrest(reason, egg) {
     gameState.arrested = true;
     gameState.active = false;
     const $ = window.jQuery;
+    if (!$) return;
     $('#tgww_main').removeClass('active');
     $('#tgww_arrest').addClass('active');
     $('#tgww_arrest_text').text(reason);
@@ -87,16 +105,16 @@ function triggerArrest(reason, egg) {
 
 async function generateReaction(action) {
     const $ = window.jQuery;
+    if (!$) return;
     $('#tgww_loading').show();
     
     try {
-        const context = getContext();
+        const context = getContextSafe();
         let charName = '他';
         if (context.characters && context.characterId !== undefined && context.characters[context.characterId]) {
             charName = context.characters[context.characterId].name || '他';
         }
         
-        // Mock response for now
         let newHr = gameState.hr + Math.floor(Math.random() * 15);
         let newSus = gameState.sus + Math.floor(Math.random() * 20);
         if(newHr > 180) newHr = 180;
@@ -127,19 +145,29 @@ async function generateReaction(action) {
     }
 }
 
-jQuery(async () => {
-    console.log(`🚀 共感娃娃 v1.0.6 启动`);
-    loadSettings();
-
-    // 加载设置面板 HTML
-    const settingsHtml = await $.get(`${extensionFolderPath}/settings.html`);
-    $('#extensions_settings').append(settingsHtml);
-
-    const settingsObj = extension_settings[EXTENSION_NAME];
-    const inputs = ['tgww_enabled', 'tgww_api_mode', 'tgww_api_url', 'tgww_api_key', 'tgww_api_model'];
+async function initTgww() {
+    console.log(`🚀 共感娃娃 v1.0.7 启动`);
+    const $ = window.jQuery;
+    if (!$) {
+        console.warn('⚠️ jQuery is not loaded yet, tgww initialization failed.');
+        return;
+    }
     
+    const settingsObj = loadSettings();
+
+    try {
+        const settingsHtmlUrl = new URL('./settings.html', BASE_URL).href;
+        const settingsHtml = await (await fetch(settingsHtmlUrl)).text();
+        $('#extensions_settings').append(settingsHtml);
+    } catch (e) {
+        console.error('Failed to load settings.html', e);
+    }
+
+    const inputs = ['tgww_enabled', 'tgww_api_mode', 'tgww_api_url', 'tgww_api_key', 'tgww_api_model'];
     inputs.forEach(id => {
         const el = $(`#${id}`);
+        if (!el.length) return;
+        
         const key = id.replace('tgww_', '');
         if(el.is(':checkbox')) el.prop('checked', settingsObj[key]);
         else el.val(settingsObj[key] || '');
@@ -160,11 +188,14 @@ jQuery(async () => {
         $('#tgww_custom_api_settings').show();
     }
 
-    // 加载游戏界面 HTML
-    const gameHtml = await $.get(`${extensionFolderPath}/game.html`);
-    $('body').append(gameHtml);
+    try {
+        const gameHtmlUrl = new URL('./game.html', BASE_URL).href;
+        const gameHtml = await (await fetch(gameHtmlUrl)).text();
+        $('body').append(gameHtml);
+    } catch (e) {
+        console.error('Failed to load game.html', e);
+    }
 
-    // 绑定游戏 UI
     const wrapper = $('#tgww_wrapper');
     wrapper.on('click', (e) => {
         if(e.target === wrapper[0]) {
@@ -203,9 +234,8 @@ jQuery(async () => {
         updateUI();
     });
 
-    // 创建触发按钮
     const openGameUI = () => {
-        if (wrapper) {
+        if (wrapper && wrapper.length) {
             wrapper.css({
                 display: 'flex',
                 position: 'fixed',
@@ -218,7 +248,6 @@ jQuery(async () => {
         }
     };
 
-    // 全局悬浮按钮
     if (!document.getElementById('tgww_open_btn')) {
         const triggerBtn = document.createElement('div');
         triggerBtn.id = 'tgww_open_btn';
@@ -231,7 +260,6 @@ jQuery(async () => {
         document.body.appendChild(triggerBtn);
     }
 
-    // 聊天框旁边按钮
     if (!document.getElementById('tgww_chat_btn')) {
         const chatInputBtn = document.createElement('div');
         chatInputBtn.id = 'tgww_chat_btn';
@@ -254,7 +282,6 @@ jQuery(async () => {
         }
     }
         
-    // 顶部菜单注入
     if (!document.getElementById('tgww_top_btn')) {
         const topMenuBtn = document.createElement('div');
         topMenuBtn.id = 'tgww_top_btn';
@@ -272,13 +299,28 @@ jQuery(async () => {
         }
     }
 
-    // 注册斜杠命令
     try {
-        registerSlashCommand('tgww', async () => {
-            openGameUI();
-            return '';
-        }, [], '打开共感娃娃番外互动界面');
+        if (typeof window.SlashCommandParser !== 'undefined' && window.SlashCommandParser.addCommandObject) {
+            window.SlashCommandParser.addCommandObject(
+                window.SlashCommandParser.addCommand('tgww', async () => {
+                    openGameUI();
+                    return '';
+                }, [], '打开共感娃娃番外互动界面')
+            );
+        } else if (typeof registerSlashCommand === 'function') {
+            registerSlashCommand('tgww', async () => {
+                openGameUI();
+                return '';
+            }, [], '打开共感娃娃番外互动界面');
+        }
     } catch (e) {
         console.warn("[tgww] 注册斜杠命令失败:", e);
     }
-});
+}
+
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initTgww);
+} else {
+    initTgww();
+}
+
