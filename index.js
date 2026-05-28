@@ -1,6 +1,3 @@
-import { extension_settings } from '../../../extensions.js';
-import { registerSlashCommand } from '../../../slash-commands.js';
-
 const EXTENSION_NAME = 'tgww';
 // 使用 import.meta.url 动态获取当前路径，避免因安装目录不同导致 404
 const extensionBaseUrl = new URL('./', import.meta.url).href;
@@ -359,10 +356,17 @@ async function setupGameUI() {
 
         // Register slash command as an alternative trigger
         try {
-            registerSlashCommand('tgww', async () => {
-                openGameUI();
-                return '';
-            }, [], '打开共感娃娃番外互动界面');
+            if (typeof SlashCommandParser !== 'undefined' && SlashCommandParser.addCommand) {
+                SlashCommandParser.addCommand('tgww', async () => {
+                    openGameUI();
+                    return '';
+                }, [], '打开共感娃娃番外互动界面');
+            } else if (typeof window.registerSlashCommand === 'function') {
+                window.registerSlashCommand('tgww', async () => {
+                    openGameUI();
+                    return '';
+                }, [], '打开共感娃娃番外互动界面');
+            }
         } catch (e) {
             console.warn("[tgww] 注册斜杠命令失败，可能当前版本不支持:", e);
         }
