@@ -369,6 +369,14 @@ async function initTgww() {
     
     const settingsObj = loadSettings();
 
+    try {
+        const settingsHtmlUrl = new URL('./settings.html', BASE_URL).href;
+        const settingsHtml = await (await fetch(settingsHtmlUrl)).text();
+        $('#extensions_settings').append(settingsHtml);
+    } catch (e) {
+        console.error('Failed to load settings.html', e);
+    }
+
     // 绑定设置项事件
     const inputs = ['tgww_enabled', 'tgww_api_mode', 'tgww_api_url', 'tgww_api_key', 'tgww_api_model'];
     inputs.forEach(id => {
@@ -395,12 +403,21 @@ async function initTgww() {
         $('#tgww_custom_api_settings').show();
     }
 
+    try {
+        const gameHtmlUrl = new URL('./game.html', BASE_URL).href;
+        const gameHtml = await (await fetch(gameHtmlUrl)).text();
+        $('body').append(gameHtml);
+    } catch (e) {
+        console.error('Failed to load game.html', e);
+    }
+
     const wrapper = $('#tgww_wrapper');
-    wrapper.on('click', (e) => {
-        if(e.target === wrapper[0]) wrapper.fadeOut(200);
+    // 如果还没绑定点击事件，这里进行绑定（注意，jQuery 的 on 会叠加，但此时元素是新加入的）
+    $('body').on('click', '#tgww_wrapper', function(e) {
+        if(e.target === this) $(this).fadeOut(200);
     });
 
-    $('#tgww_btn_enter').on('click', () => {
+    $('body').on('click', '#tgww_btn_enter', () => {
         $('#tgww_cover').css('opacity', 0);
         setTimeout(() => {
             $('#tgww_cover').hide();
@@ -409,18 +426,18 @@ async function initTgww() {
         }, 500);
     });
 
-    $('.tgww-action-btn').on('click', function() {
+    $('body').on('click', '.tgww-action-btn', function() {
         if (!gameState.active || gameState.arrested) return;
         const action = $(this).data('action');
         generateReaction(action);
     });
 
-    $('#tgww_btn_easter_egg').on('click', function() {
+    $('body').on('click', '#tgww_btn_easter_egg', function() {
         $(this).hide();
         $('#tgww_easter_egg_text').css('opacity', 1);
     });
 
-    $('#tgww_btn_reset').on('click', () => {
+    $('body').on('click', '#tgww_btn_reset', () => {
         gameState = { hr: 72, sus: 0, active: true, arrested: false };
         $('#tgww_arrest').removeClass('active');
         $('#tgww_main').addClass('active');
@@ -432,8 +449,11 @@ async function initTgww() {
     });
 
     const openGameUI = () => {
-        if (wrapper && wrapper.length) {
-            wrapper.fadeIn(200).css('display', 'flex');
+        const wrap = $('#tgww_wrapper');
+        if (wrap && wrap.length) {
+            wrap.fadeIn(200).css('display', 'flex');
+        } else {
+            console.warn('[tgww] #tgww_wrapper element not found. UI might not be loaded yet.');
         }
     };
 
@@ -448,6 +468,63 @@ async function initTgww() {
         triggerBtn.onmouseover = () => triggerBtn.style.transform = 'scale(1.1)';
         triggerBtn.onmouseout = () => triggerBtn.style.transform = 'scale(1)';
         document.body.appendChild(triggerBtn);
+    }
+
+    if (!document.getElementById('tgww_chat_btn')) {
+        const chatInputBtn = document.createElement('div');
+        chatInputBtn.id = 'tgww_chat_btn';
+        chatInputBtn.className = 'mes_button';
+        chatInputBtn.title = '共感娃娃番外';
+        chatInputBtn.innerHTML = '<i class="fa-solid fa-flask"></i>';
+        chatInputBtn.style.cssText = 'cursor:pointer; margin-left: 5px; color:#ff3344; font-size: 1.2em; display:flex; align-items:center; padding: 5px;';
+        chatInputBtn.onclick = openGameUI;
+
+        const formGroup = document.querySelector('#send_form #chat_and_send_buttons') || 
+                          document.querySelector('#send_form #chat_buttons') || 
+                          document.querySelector('#send_form .flex-container');
+        if (formGroup) {
+            formGroup.prepend(chatInputBtn);
+        } else {
+            const sendTextarea = document.getElementById('send_textarea');
+            if (sendTextarea && sendTextarea.parentNode) {
+                sendTextarea.parentNode.insertBefore(chatInputBtn, sendTextarea);
+            }
+        }
+    }
+        
+    if (!document.getElementById('tgww_top_btn')) {
+        const topMenuBtn = document.createElement('div');
+        topMenuBtn.id = 'tgww_top_btn';
+        topMenuBtn.className = 'menu_button';
+        topMenuBtn.title = '共感娃娃番外';
+        topMenuBtn.innerHTML = '<i class="fa-solid fa-flask" style="color:#ff3344;"></i> <span>共感娃娃</span>';
+        topMenuBtn.style.cursor = 'pointer';
+        topMenuBtn.onclick = openGameUI;
+        
+        const topMenu = document.querySelector('#extensionsMenu') || 
+                        document.querySelector('#top-bar') || 
+                        document.querySelector('.top-bar-extensions');
+        if (topMenu) {
+            topMenu.appendChild(topMenuBtn);
+        }
+    }
+
+    try {
+        if (typeof window.SlashCommandParser !== 'undefined' && window.SlashCommandParser.addCommandObject) {
+            window.SlashCommandParser.addCommandObject(
+                window.SlashCommandParser.addCommand('tgww', async () => {
+                    openGameUI();
+                    return '';
+                }, [], '打开共感娃娃番外互动界面')
+            );
+        } else if (typeof registerSlashCommand === 'function') {
+            registerSlashCommand('tgww', async () => {
+                openGameUI();
+                return '';
+            }, [], '打开共感娃娃番外互动界面');
+        }
+    } catch (e) {
+        console.warn("[tgww] 注册斜杠命令失败:", e);
     }
 }
 
