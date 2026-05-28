@@ -1,0 +1,63 @@
+<div class="tgww-container-wrapper" style="display: none;" id="tgww_wrapper">
+    <div class="tgww-popup-container" id="tgww_app">
+        <!-- Cover -->
+        <div class="tgww-cover" id="tgww_cover">
+            <h1>共感娃娃·实验日志</h1>
+            <p>你碰的每一处，他都知道。</p>
+            <button class="tgww-btn-enter" id="tgww_btn_enter">进入实验室</button>
+        </div>
+
+        <!-- Main UI -->
+        <div class="tgww-main" id="tgww_main">
+            <!-- Status Bar -->
+            <div class="tgww-status-bar">
+                <div class="tgww-status-row">
+                    <div class="tgww-hr"><span class="tgww-hr-icon">♥</span> <span id="tgww_hr_val">72</span> bpm</div>
+                    <div class="tgww-suspicion-container" title="怀疑度">
+                        <div class="tgww-suspicion-bar" id="tgww_suspicion_bar" style="width: 0%;"></div>
+                    </div>
+                    <div style="font-size: 12px; color: #888; margin-left: 10px;"><span id="tgww_suspicion_val">0</span>/100</div>
+                </div>
+                <div class="tgww-reaction-summary" id="tgww_summary">等待连接...</div>
+            </div>
+
+            <!-- Interactive Doll Area -->
+            <div class="tgww-doll-area">
+                <div class="tgww-doll-visual">
+                    [ 信号连接中... ]<br/>
+                    (人形轮廓传感器)
+                </div>
+                <!-- 9 Buttons -->
+                <button class="tgww-action-btn tgww-btn-head" data-action="摸摸头">摸摸头</button>
+                <button class="tgww-action-btn tgww-btn-ear" data-action="捏捏耳朵">捏捏耳朵</button>
+                <button class="tgww-action-btn tgww-btn-face" data-action="亲亲脸">亲亲脸</button>
+                <button class="tgww-action-btn tgww-btn-neck" data-action="自定义">未明动作</button>
+                <button class="tgww-action-btn tgww-btn-back" data-action="拍拍背">拍拍背</button>
+                <button class="tgww-action-btn tgww-btn-waist" data-action="戳戳腰">戳戳腰</button>
+                <button class="tgww-action-btn tgww-btn-hand" data-action="捏捏手">捏捏手</button>
+                <button class="tgww-action-btn tgww-btn-clothes" data-action="拉衣角">拉衣角</button>
+                <button class="tgww-action-btn tgww-btn-hug" data-action="拥抱娃娃">拥抱娃娃</button>
+            </div>
+
+            <!-- Logs / History -->
+            <div class="tgww-logs" id="tgww_logs">
+                <div class="tgww-log-entry" style="color: #666;">系统初始化完毕...开始记录交互。</div>
+            </div>
+        </div>
+
+        <!-- Arrest Screen -->
+        <div class="tgww-arrest" id="tgww_arrest">
+            <h2>WARNING: 连接反演</h2>
+            <div class="tgww-arrest-text" id="tgww_arrest_text"></div>
+            <button class="tgww-easter-egg-btn" id="tgww_btn_easter_egg" style="display:none;">娃娃的余温</button>
+            <div class="tgww-easter-egg-text" id="tgww_easter_egg_text"></div>
+            <button class="tgww-btn-enter" id="tgww_btn_reset" style="margin-top: 20px; font-size: 12px; padding: 5px 15px;">重置实验</button>
+        </div>
+
+        <!-- Toast -->
+        <div class="tgww-warning-toast" id="tgww_toast"></div>
+        
+        <!-- Loading -->
+        <div class="tgww-loading" id="tgww_loading">分析反馈中...</div>
+    </div>
+</div>

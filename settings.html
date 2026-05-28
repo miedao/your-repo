@@ -1,0 +1,39 @@
+<div class="tgww-settings" data-extension-name="tgww">
+    <div class="inline-drawer">
+        <div class="inline-drawer-toggle inline-drawer-header">
+            <b>共感娃娃 (Empathy Doll) 番外插件</b>
+            <div class="inline-drawer-icon fa-solid fa-circle-chevron-down"></div>
+        </div>
+        <div class="inline-drawer-content">
+            <div class="flex-container alignitemscenter flexFlowColumn gap-2">
+                <label class="checkbox_label" title="在发送按钮旁显示共感娃娃的入口图标">
+                    <input type="checkbox" id="tgww_enabled" />
+                    <span>启用共感娃娃快速入口</span>
+                </label>
+                
+                <hr class="sysdef_hr">
+                
+                <label for="tgww_api_mode" title="LLM 接口选择">生成模式:</label>
+                <select id="tgww_api_mode" class="text_pole">
+                    <option value="internal">使用当前对话大模型 (推荐)</option>
+                    <option value="custom">自定义 OpenAI 兼容接口</option>
+                </select>
+
+                <div id="tgww_custom_api_settings" style="display: none; width: 100%; flex-direction: column; gap: 5px;">
+                    <label for="tgww_api_url">自定义 API URL:</label>
+                    <input type="text" id="tgww_api_url" class="text_pole" placeholder="https://api.openai.com/v1/chat/completions" />
+                    
+                    <label for="tgww_api_key">API Key:</label>
+                    <input type="password" id="tgww_api_key" class="text_pole" placeholder="sk-..." />
+                    
+                    <label for="tgww_api_model">模型名称:</label>
+                    <input type="text" id="tgww_api_model" class="text_pole" placeholder="gpt-4o-mini" />
+                </div>
+
+                <small style="color: var(--SmartThemeBodyColor); opacity: 0.8; margin-top: 5px;">
+                    * 当怀疑度累计达到 100 时会触发逮捕剧情。所有数据存储在本地。
+                </small>
+            </div>
+        </div>
+    </div>
+</div>

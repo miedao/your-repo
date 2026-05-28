@@ -1,0 +1,333 @@
+/* tgww plugin core styles */
+
+.tgww-popup-container {
+    width: 100%;
+    max-width: 450px;
+    height: 640px;
+    background: #111;
+    background-image: 
+        linear-gradient(rgba(255, 0, 50, 0.05) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255, 0, 50, 0.05) 1px, transparent 1px);
+    background-size: 20px 20px;
+    border: 1px solid rgba(255, 50, 50, 0.3);
+    border-radius: 8px;
+    box-shadow: 0 0 20px rgba(255, 0, 50, 0.2), inset 0 0 30px rgba(0, 0, 0, 0.8);
+    position: relative;
+    overflow: hidden;
+    font-family: 'Courier New', Courier, monospace;
+    color: #ddd;
+    display: flex;
+    flex-direction: column;
+}
+
+/* Cover Screen */
+.tgww-cover {
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(10, 10, 10, 0.95);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    z-index: 50;
+    transition: opacity 0.5s ease;
+}
+
+.tgww-cover h1 {
+    color: #ff3333;
+    font-size: 24px;
+    text-shadow: 0 0 10px rgba(255, 50, 50, 0.5);
+    margin-bottom: 10px;
+    text-align: center;
+}
+
+.tgww-cover p {
+    color: #888;
+    font-size: 14px;
+    margin-bottom: 40px;
+}
+
+.tgww-btn-enter {
+    padding: 10px 30px;
+    background: transparent;
+    border: 1px solid #ff3333;
+    color: #ff3333;
+    font-family: inherit;
+    font-size: 16px;
+    cursor: pointer;
+    transition: all 0.3s;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+}
+
+.tgww-btn-enter:hover {
+    background: rgba(255, 50, 50, 0.2);
+    box-shadow: 0 0 15px rgba(255, 50, 50, 0.5);
+}
+
+/* Main Game Interface */
+.tgww-main {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.5s ease;
+    overflow-y: auto;
+}
+
+.tgww-main.active {
+    opacity: 1;
+    pointer-events: auto;
+}
+
+/* Status Bar */
+.tgww-status-bar {
+    padding: 15px;
+    border-bottom: 1px solid rgba(255, 50, 50, 0.3);
+    background: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(4px);
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+}
+
+.tgww-status-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.tgww-hr {
+    color: #ff3333;
+    font-weight: bold;
+    font-size: 18px;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.tgww-hr-icon {
+    animation: tgww-heartbeat 1s infinite;
+}
+
+@keyframes tgww-heartbeat {
+    0% { transform: scale(1); }
+    15% { transform: scale(1.2); }
+    30% { transform: scale(1); }
+    45% { transform: scale(1.2); }
+    60% { transform: scale(1); }
+}
+
+.tgww-suspicion-container {
+    flex: 1;
+    margin-left: 15px;
+    height: 10px;
+    background: #333;
+    border: 1px solid #555;
+    position: relative;
+    border-radius: 5px;
+    overflow: hidden;
+}
+
+.tgww-suspicion-bar {
+    height: 100%;
+    width: 0%;
+    background: linear-gradient(90deg, #4caf50, #ffeb3b, #f44336);
+    transition: width 0.5s ease;
+}
+
+.tgww-reaction-summary {
+    font-size: 12px;
+    color: #aaa;
+    min-height: 16px;
+    font-style: italic;
+}
+
+/* Doll Area */
+.tgww-doll-area {
+    flex: 1;
+    position: relative;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 350px;
+}
+
+.tgww-doll-visual {
+    width: 150px;
+    height: 300px;
+    border: 1px dashed rgba(255, 255, 255, 0.2);
+    border-radius: 75px 75px 20px 20px;
+    position: relative;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    color: rgba(255,255,255,0.1);
+    font-size: 12px;
+    text-align: center;
+}
+
+.tgww-action-btn {
+    position: absolute;
+    background: rgba(20, 20, 20, 0.8);
+    border: 1px solid #555;
+    color: #ccc;
+    padding: 6px 12px;
+    font-size: 12px;
+    cursor: pointer;
+    border-radius: 4px;
+    transition: all 0.2s;
+    font-family: inherit;
+    white-space: nowrap;
+    z-index: 5;
+}
+
+.tgww-action-btn:hover {
+    border-color: #ff3333;
+    color: #ff3333;
+    box-shadow: 0 0 10px rgba(255, 50, 50, 0.3);
+    transform: scale(1.05);
+}
+
+/* Button Positioning */
+.tgww-btn-head { top: 5%; left: 50%; transform: translateX(-50%); }
+.tgww-btn-ear { top: 15%; right: 10%; }
+.tgww-btn-face { top: 25%; left: 10%; }
+.tgww-btn-neck { top: 35%; right: 15%; }
+.tgww-btn-back { top: 45%; left: 5%; }
+.tgww-btn-waist { top: 55%; right: 5%; }
+.tgww-btn-hand { top: 65%; left: 15%; }
+.tgww-btn-clothes { top: 75%; right: 20%; }
+.tgww-btn-hug { top: 85%; left: 50%; transform: translateX(-50%); }
+
+/* Logs Area */
+.tgww-logs {
+    padding: 15px;
+    border-top: 1px solid rgba(255, 50, 50, 0.3);
+    background: rgba(0, 0, 0, 0.7);
+    height: 120px;
+    overflow-y: auto;
+    font-size: 13px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.tgww-log-entry {
+    color: #ccc;
+    line-height: 1.4;
+    animation: fadeIn 0.3s ease;
+}
+
+.tgww-log-action { color: #888; }
+.tgww-log-reaction { color: #eee; }
+.tgww-log-meta { color: #ff5555; font-size: 11px; }
+
+/* Arrest Screen */
+.tgww-arrest {
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(20, 0, 0, 0.95);
+    z-index: 100;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    padding: 30px;
+    text-align: center;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.5s ease;
+}
+
+.tgww-arrest.active {
+    opacity: 1;
+    pointer-events: auto;
+}
+
+.tgww-arrest h2 {
+    color: #ff0000;
+    font-size: 28px;
+    margin-bottom: 20px;
+    text-shadow: 0 0 15px #ff0000;
+    animation: flash 2s infinite;
+}
+
+.tgww-arrest-text {
+    color: #ddd;
+    font-size: 15px;
+    line-height: 1.6;
+    margin-bottom: 30px;
+    max-height: 300px;
+    overflow-y: auto;
+    text-align: left;
+    background: rgba(0,0,0,0.5);
+    padding: 15px;
+    border: 1px solid #400;
+}
+
+.tgww-easter-egg-btn {
+    padding: 10px 20px;
+    background: #222;
+    border: 1px solid #666;
+    color: #aaa;
+    cursor: pointer;
+    font-family: inherit;
+    transition: all 0.3s;
+}
+
+.tgww-easter-egg-btn:hover {
+    border-color: #fff;
+    color: #fff;
+}
+
+.tgww-easter-egg-text {
+    margin-top: 20px;
+    font-size: 14px;
+    color: #999;
+    font-style: italic;
+    opacity: 0;
+    transition: opacity 0.5s;
+}
+
+.tgww-warning-toast {
+    position: absolute;
+    bottom: 20%;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(255,0,0,0.8);
+    color: white;
+    padding: 5px 15px;
+    border-radius: 15px;
+    font-size: 12px;
+    z-index: 60;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(5px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes flash {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.7; }
+}
+
+/* Utilities */
+.tgww-loading {
+    position: absolute;
+    top: 50%; left: 50%; transform: translate(-50%, -50%);
+    color: #ff3333;
+    background: rgba(0,0,0,0.8);
+    padding: 10px 20px;
+    border: 1px solid #ff3333;
+    z-index: 60;
+    display: none;
+}
