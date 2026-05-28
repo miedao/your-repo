@@ -11,6 +11,61 @@ const defaultSettings = {
     apiModel: ''
 };
 
+// =======================
+// Fallback Reaction Pool (27 items)
+// =======================
+const fallbackReactions = {
+    "摸摸头": [
+        { reaction: "*随着你的动作，他感觉到头顶传来一阵温柔的抚摸，不自觉地眯起眼睛，呼吸变得平缓。*", sus_add: 1 },
+        { reaction: "*他的头发似乎被人揉乱了，他有些不满地皱了皱眉，伸手去理了理头发，眼神却流露出一丝疑惑。*", sus_add: 2 },
+        { reaction: "*当你的手落在娃娃头上时，他感觉到一只无形的手轻轻顺着他的头发，身体微微放松，嘴角轻微上扬。*", sus_add: 1 }
+    ],
+    "捏捏手": [
+        { reaction: "*他的手指突然感觉到一阵轻微的压迫感，仿佛有人在捏他的指节，他下意识地蜷缩了一下手指。*", sus_add: 1 },
+        { reaction: "*他感觉到手背被温柔地摩挲着，温度似乎从虚无中传来，让他忍不住看向自己的掌心。*", sus_add: 2 },
+        { reaction: "*就像是被十指相扣一样，他的手掌感受到一种亲密的包裹感，呼吸稍微乱了一拍。*", sus_add: 3 }
+    ],
+    "亲亲脸": [
+        { reaction: "*他的脸颊突然感觉到一阵湿润温热的触感，他猛地睁大眼睛，耳根悄悄泛起了一丝薄红。*", sus_add: 3 },
+        { reaction: "*仿佛有人在他的额头上落下了一个轻吻，他愣了一下，不自在地偏过头，轻咳了一声。*", sus_add: 2 },
+        { reaction: "*他的嘴角感觉到了柔软的触碰，心跳骤然加快，眼神开始不自觉地在四周游移寻找。*", sus_add: 4 }
+    ],
+    "戳戳腰": [
+        { reaction: "*他感觉到腰侧被一根手指轻轻戳了一下，身体极其敏感地瑟缩了一下，闷哼出声。*", sus_add: 3 },
+        { reaction: "*那股轻揉腰际的触感让他浑身一僵，他不自然地挺直了背脊，脸色变得有些古怪。*", sus_add: 2 },
+        { reaction: "*随着腰部传来的异样触感，他咬了咬下唇，强忍住差点溢出的喘息，目光变得危险起来。*", sus_add: 4 }
+    ],
+    "拍拍背": [
+        { reaction: "*后背传来的轻拍节奏让他感到一种莫名的安心感，原本紧绷的肩背逐渐放松下来。*", sus_add: 1 },
+        { reaction: "*就像是被人顺毛撸一样，他感觉到背脊一阵酥麻，有些慵懒地眯起了眼，喉咙里发出细微的声响。*", sus_add: 2 },
+        { reaction: "*背后突如其来的触感让他下意识地回过头去，却什么也没看到，眼中闪过一丝狐疑。*", sus_add: 3 }
+    ],
+    "拥抱娃娃": [
+        { reaction: "*他突然感觉到一种被完全包裹的温暖感，仿佛被人紧紧抱在怀里，心跳不可抑止地加快。*", sus_add: 4 },
+        { reaction: "*从背后环抱而来的虚拟触感让他浑身一震，他屏住了呼吸，双手不自觉地握成了拳头。*", sus_add: 5 },
+        { reaction: "*那股窒息般的拥抱感让他感到心慌又沉溺，他不自觉地往后靠了靠，仿佛想要贴近那个不存在的怀抱。*", sus_add: 4 }
+    ],
+    "捏捏耳朵": [
+        { reaction: "*他的耳垂突然感觉到一阵轻捏的触感，耳朵立刻红得像要滴血，他恼羞成怒地捂住了耳朵。*", sus_add: 4 },
+        { reaction: "*仿佛有一阵热气吹拂进耳朵里，他浑身像触电般一颤，腿甚至有瞬间的发软。*", sus_add: 5 },
+        { reaction: "*耳尖传来的温润触感让他整个人僵在原地，眼神变得极度不自然，呼吸也变得急促起来。*", sus_add: 4 }
+    ],
+    "拉衣角": [
+        { reaction: "*他感觉到衣摆被人轻轻扯动了一下，低头看了看，明明什么都没有，怀疑的种子在心里生根。*", sus_add: 2 },
+        { reaction: "*指尖探入衣摆的触感让他倒吸了一口凉气，一把抓住了自己的衣服下摆，四下张望。*", sus_add: 5 },
+        { reaction: "*感觉到衣领被整理，他愣怔了片刻，随即露出了一个无奈又有些纵容的浅笑。*", sus_add: 1 }
+    ],
+    "自定义高能动作": [
+        { reaction: "*脖颈处传来一阵极具占有欲的蹭弄，他终于无法维持平静，深吸一口气，眼神变得极具侵略性。*", sus_add: 5 },
+        { reaction: "*掌心仿佛被人用指尖轻轻划过写字，酥痒感直达心脏，他紧紧握住了拳头，暗暗咬牙。*", sus_add: 5 },
+        { reaction: "*指尖传来的微痛与湿润交织的触感，让他直接闭上了眼睛，喉结重重地上下滚动了一番。*", sus_add: 5 }
+    ]
+};
+
+const highEnergyActions = [
+    "蹭蹭脖子", "在掌心写字", "轻咬指尖", "把手探入下摆", "贴近耳边吹气", "跨坐在腿上", "用力抱紧", "顺着脊椎抚摸"
+];
+
 function getContextSafe() {
     if (typeof getContext === 'function') return getContext();
     if (window.getContext) return window.getContext();
@@ -46,38 +101,58 @@ function saveSettings() {
     }
 }
 
+function addLog(actionStr, reactionStr) {
+    const $ = window.jQuery;
+    if (!$) return;
+    const logs = $('#tgww_logs');
+    const entry = $('<div class="tgww-log-entry"></div>');
+    entry.append($('<div class="tgww-log-action"></div>').text(`> ${actionStr}`));
+    entry.append($('<span class="tgww-log-reaction"></span>').text(reactionStr));
+    logs.append(entry);
+    logs.scrollTop(logs[0].scrollHeight);
+}
+
+function showToast(msg) {
+    const $ = window.jQuery;
+    if (!$) return;
+    const toast = $('#tgww_toast');
+    toast.text(msg).css({ opacity: 1, transform: 'translate(-50%, 0)' });
+    setTimeout(() => {
+        toast.css({ opacity: 0, transform: 'translate(-50%, -10px)' });
+    }, 3000);
+}
+
 function updateUI() {
     const $ = window.jQuery;
     if (!$) return;
-    $('#tgww_hr_val').text(gameState.hr);
+    
+    // Animate HR randomly close to target
+    $('#tgww_hr_val').text(gameState.hr + Math.floor(Math.random()*3 - 1));
     $('#tgww_suspicion_val').text(gameState.sus);
     $('#tgww_suspicion_bar').css('width', `${gameState.sus}%`);
     
     const hrIcon = $('.tgww-hr-icon');
     if(gameState.hr > 120) {
-        hrIcon.css('animation', 'tgww-heartbeat 0.3s infinite alternate');
-        hrIcon.css('color', '#ff0000');
+        hrIcon.css('animation-duration', '0.4s');
+        hrIcon.css('color', '#ef4444');
     } else if(gameState.hr > 90) {
-        hrIcon.css('animation', 'tgww-heartbeat 0.6s infinite alternate');
-        hrIcon.css('color', '#ff5555');
+        hrIcon.css('animation-duration', '0.7s');
+        hrIcon.css('color', '#f87171');
     } else {
-        hrIcon.css('animation', 'tgww-heartbeat 1s infinite alternate');
-        hrIcon.css('color', '#ff8888');
+        hrIcon.css('animation-duration', '1.2s');
+        hrIcon.css('color', '#ff3344');
     }
 
-    if(gameState.sus > 80) $('#tgww_suspicion_bar').css('background', '#ff3333');
-    else if(gameState.sus > 50) $('#tgww_suspicion_bar').css('background', '#ff9900');
-    else $('#tgww_suspicion_bar').css('background', '#00f2fe');
+    if(gameState.sus > 80) $('#tgww_suspicion_bar').css('background', '#ef4444');
+    else if(gameState.sus > 50) $('#tgww_suspicion_bar').css('background', '#eab308');
+    else $('#tgww_suspicion_bar').css('background', '#4ade80');
 }
 
-const highEnergyActions = [
-    "蹭蹭脖子", "在掌心写字", "轻咬指尖", "把手探入下摆", "贴近耳边吹气", "跨坐在腿上", "用力抱紧", "顺着脊椎抚摸"
-];
-
-async function callLLM(systemPrompt, userPrompt, forceJson = true) {
+async function callLLM(systemPrompt, userPrompt) {
     const settings = loadSettings();
     let resultText = "";
     
+    // First try custom API
     if (settings.apiMode === 'custom' && settings.apiUrl && settings.apiKey) {
         try {
             const bodyPayload = {
@@ -86,9 +161,8 @@ async function callLLM(systemPrompt, userPrompt, forceJson = true) {
                     { role: "system", content: systemPrompt },
                     { role: "user", content: userPrompt }
                 ],
-                temperature: 0.7
+                temperature: 0.8
             };
-            if (forceJson) bodyPayload.response_format = { type: "json_object" };
             
             const res = await fetch(settings.apiUrl, {
                 method: 'POST',
@@ -105,10 +179,12 @@ async function callLLM(systemPrompt, userPrompt, forceJson = true) {
         } catch(e) {
             console.error("[tgww] Custom API failed:", e);
         }
-    } else {
-        // Try internal API via generateRaw or similar fallback
+    } 
+    
+    // Fallback to internal SillyTavern API if no result
+    if (!resultText) {
         try {
-            const fullPrompt = systemPrompt + "\n\nUser Request: " + userPrompt + (forceJson ? "\n\nOUTPUT PURE JSON FORMAT." : "");
+            const fullPrompt = systemPrompt + "\n\nUser Request: " + userPrompt + "\n\nOUTPUT ONLY PURE JSON FORMAT, no markdown blocks.";
             if (typeof window.generateRaw === 'function') {
                 resultText = await window.generateRaw(fullPrompt, true);
             } else if (typeof window.SillyTavern?.getContext().generateRaw === 'function') {
@@ -123,17 +199,19 @@ async function callLLM(systemPrompt, userPrompt, forceJson = true) {
     
     if (!resultText) return null;
     
-    if (forceJson) {
-        try {
-            const match = resultText.match(/\{[\s\S]*\}/);
-            if (match) return JSON.parse(match[0]);
-            return JSON.parse(resultText);
-        } catch(e) {
-            console.error("[tgww] Failed to parse JSON:", resultText);
-            return null;
+    // Safely parse JSON even if surrounded by markdown codeblocks
+    try {
+        let cleanText = resultText.trim();
+        if (cleanText.startsWith("```")) {
+            cleanText = cleanText.replace(/^```[a-z]*\n/, '').replace(/\n```$/, '');
         }
+        const match = cleanText.match(/\{[\s\S]*\}/);
+        if (match) return JSON.parse(match[0]);
+        return JSON.parse(cleanText);
+    } catch(e) {
+        console.error("[tgww] Failed to parse JSON:", resultText);
+        return null; // Return null so we can use the fallback pool!
     }
-    return resultText;
 }
 
 function getCharacterContext() {
@@ -153,7 +231,7 @@ function getCharacterContext() {
 
 async function handleArrest(charName, charPersona, userName) {
     const $ = window.jQuery;
-    $('#tgww_loading').text("【警告】信号逆向追踪中...").show();
+    $('#tgww_loading').html('<i class="fa-solid fa-spinner fa-spin"></i> 信号逆向追踪中...').css('display', 'flex');
     
     const sysPrompt = `你正在为一个互动游戏写"逮捕"剧情。
 背景: User通过共感娃娃一直触摸${charName}，怀疑度达到100%，${charName}的本体顺着连接抓到了User。
@@ -161,9 +239,14 @@ async function handleArrest(charName, charPersona, userName) {
 必须包含:
 1) ${charName}出场的方式(带有"抓到你了"的压迫感与暧昧，不少于80字)。
 2) 对User的"教育"(不少于400字，质问为什么一直碰娃娃，表达真实感受，以及惩罚措施)。
-全程第三人称描写Char，第二人称描写User。没有多余的格式，直接输出纯文本故事。`;
+要求：全程第三人称描写Char，第二人称描写User。直接输出纯文本故事，不带任何JSON，不带Markdown标题。`;
     
-    const story = await callLLM(sysPrompt, `请生成逮捕剧情文本。`, false) || `*门铃响了。门外传来了${charName}的声音：“找到你了。你以为你对那个娃娃做的事，我感觉不到吗？”* \n\n他猛地推开门，将你逼入角落，眼神中带着危险的笑意，开始了漫长的“教育”...`;
+    let story = await callLLM(sysPrompt, `请生成逮捕剧情文本。`, false);
+    
+    // Fallback if API fails
+    if (!story || typeof story === 'object') {
+        story = `*门铃猝不及防地响起，还未等你起身，门已经被外力猛地推开。${charName}阴沉着脸站在门口，目光紧紧锁定着你，一步步将你逼入角落。他的眼神中带着一种危险而压抑的笑意，声音低哑：“找到你了...你以为你对那个娃娃做的事，我感觉不到吗？”* \n\n他一把夺过你手中的共感娃娃，随意扔在地上，转而捏住了你的下巴，迫使你抬头与他对视。“说吧，为什么要一直碰它？你知道我这边是什么感受吗...”他惩罚性地咬了一下你的唇角，开始了漫长的“教育”...`;
+    }
     
     gameState.arrested = true;
     gameState.active = false;
@@ -176,11 +259,14 @@ async function handleArrest(charName, charPersona, userName) {
     eggBtn.show();
     eggBtn.off('click').on('click', async function() {
         $(this).hide();
-        $('#tgww_loading').text("提取余温记忆...").show();
+        $('#tgww_loading').html('<i class="fa-solid fa-spinner fa-spin"></i> 提取余温记忆...').css('display', 'flex');
         
         const eggPrompt = `生成"娃娃的余温"彩蛋剧情(不少于150字)。
-背景: 逮捕剧情结束后，${charName}私底下偷偷检查娃娃，并自言自语说了一句关于User的话。符合性格: ${charPersona}`;
-        const eggStory = await callLLM(eggPrompt, "请生成彩蛋剧情。", false) || `*他在你看不见的地方，轻轻拿起那个娃娃，指尖摩挲着你刚刚触碰过的地方，嘴角勾起一抹不易察觉的弧度。* “真是个毫无防备的家伙...”`;
+背景: 逮捕剧情结束后，${charName}私底下偷偷检查娃娃，并自言自语说了一句关于User的话。符合性格: ${charPersona}。不带JSON格式，纯文本输出。`;
+        let eggStory = await callLLM(eggPrompt, "请生成彩蛋剧情。");
+        if (!eggStory || typeof eggStory === 'object') {
+            eggStory = `*在你沉睡的深夜里，${charName}独自坐在床边，捡起了那个被丢在地上的共感娃娃。他修长的指尖轻轻摩挲着娃娃的头顶和脸颊，似乎在回忆着白天从连接端传来的那一阵阵酥麻触感。他的嘴角勾起一抹连自己都没察觉到的温柔弧度，轻笑了一声：“真是个毫无防备又胆大妄为的家伙...下次，可不会这么轻易放过你了。”*`;
+        }
         
         $('#tgww_easter_egg_text').text(eggStory).css('opacity', 1);
         $('#tgww_loading').hide();
@@ -197,11 +283,11 @@ async function generateReaction(action) {
     
     gameState.isProcessing = true;
     let actualAction = action;
-    if (action === "高能动作") {
+    if (action === "自定义高能动作") {
         actualAction = highEnergyActions[Math.floor(Math.random() * highEnergyActions.length)];
     }
 
-    $('#tgww_loading').text("分析反馈中...").show();
+    $('#tgww_loading').html('<i class="fa-solid fa-spinner fa-spin"></i> 分析反馈中...').css('display', 'flex');
     
     try {
         const { charName, charPersona, userName } = getCharacterContext();
@@ -209,18 +295,23 @@ async function generateReaction(action) {
         const sysPrompt = `你正在运行一个叫【共感娃娃】的互动游戏实验。
 当前角色(${charName})性格: ${charPersona}。玩家(${userName})。
 设定: ${charName}和${userName}是恋人。玩家刚刚对共感娃娃执行了动作:【${actualAction}】。${charName}会真实感受到这个触碰。
-你必须返回一个JSON对象，格式如下:
+你必须返回一个严格合法的JSON对象，绝对不要有额外的对话，格式如下:
 {
   "sus_add": <整数，1到5之间，根据动作亲密程度决定>,
   "reaction": "<至少40字的文本，描述${charName}的身体感受和语言/非语言反馈。必须体现共感特性(点出碰了哪里)，符合心跳变化，禁止重复句式，第三人称描写Char，第二人称描写User。>"
 }`;
         
-        let response = await callLLM(sysPrompt, `玩家动作：${actualAction}。请生成反馈。`);
+        let response = await callLLM(sysPrompt, `玩家动作：${actualAction}。请生成严格的JSON反馈。`);
         
+        // 核心修复：如果 LLM API 失败，从丰富的备用库中随机抽取！
         if (!response || !response.reaction) {
+            console.log("[tgww] LLM failed, using fallback pool for:", action);
+            const pool = fallbackReactions[action] || fallbackReactions["摸摸头"];
+            const randomPick = pool[Math.floor(Math.random() * pool.length)];
+            
             response = {
-                sus_add: Math.floor(Math.random() * 4) + 1,
-                reaction: `*${charName}被你${actualAction}后，身体微微颤抖，发出了细碎的呼吸声。他似乎感觉到了那个部位传来的触感。*`
+                sus_add: randomPick.sus_add + (action === "自定义高能动作" ? 2 : 0),
+                reaction: randomPick.reaction.replace(/他/g, charName).replace(/你/g, userName)
             };
         }
         
@@ -228,53 +319,57 @@ async function generateReaction(action) {
         gameState.sus += response.sus_add;
         if(gameState.sus > 100) gameState.sus = 100;
         
-        // HR Calculation
-        let minHr = 60, maxHr = 80;
-        if (gameState.sus > 40) { minHr = 81; maxHr = 110; }
-        if (gameState.sus > 75) { minHr = 111; maxHr = 130; }
-        if (gameState.sus >= 100) { minHr = 140; maxHr = 150; }
+        // HR Calculation (Dynamic based on sus)
+        let minHr = 65, maxHr = 85;
+        if (gameState.sus > 40) { minHr = 85; maxHr = 110; }
+        if (gameState.sus > 75) { minHr = 110; maxHr = 135; }
+        if (gameState.sus >= 100) { minHr = 140; maxHr = 160; }
         gameState.hr = Math.floor(Math.random() * (maxHr - minHr + 1)) + minHr;
         
         updateUI();
         
-        let displayAction = action === "高能动作" ? `高能动作 [${actualAction}]` : action;
+        let displayAction = action === "自定义高能动作" ? `高能动作 [${actualAction}]` : action;
         $('#tgww_summary').text(response.reaction);
         addLog(displayAction, response.reaction + ` (怀疑度 +${response.sus_add})`);
 
-        if (gameState.sus >= 30 && oldSus < 30) showToast("30: 他似乎感觉到了什么...");
-        if (gameState.sus >= 60 && oldSus < 60) showToast("60: 他看向娃娃的方向");
-        if (gameState.sus >= 80 && oldSus < 80) showToast("80: 他已经在找你了...");
+        if (gameState.sus >= 30 && oldSus < 30) showToast("预警 | 30%: 他似乎感觉到了什么...");
+        if (gameState.sus >= 60 && oldSus < 60) showToast("警告 | 60%: 他看向了娃娃的方向...");
+        if (gameState.sus >= 80 && oldSus < 80) showToast("危 | 80%: 他已经在找你了...");
 
         if(gameState.sus >= 100) {
             await handleArrest(charName, charPersona, userName);
         }
     } catch(e) {
         console.error("生成反应失败:", e);
-        showToast("连接中断，无法获取反馈。");
+        showToast("神经连接波动，请重试。");
     } finally {
         $('#tgww_loading').hide();
         gameState.isProcessing = false;
     }
 }
 
-async function initTgww() {
-    console.log(`🚀 共感娃娃 v1.0.7 启动`);
-    const $ = window.jQuery;
-    if (!$) {
-        console.warn('⚠️ jQuery is not loaded yet, tgww initialization failed.');
-        return;
+// 模拟心跳波动
+setInterval(() => {
+    if (gameState.active && !gameState.arrested && !gameState.isProcessing) {
+        const $ = window.jQuery;
+        if ($ && $('#tgww_main').hasClass('active')) {
+            let variance = Math.floor(Math.random() * 5) - 2;
+            let currentHr = parseInt($('#tgww_hr_val').text()) || gameState.hr;
+            let newHr = currentHr + variance;
+            if(Math.abs(newHr - gameState.hr) > 5) newHr = gameState.hr; // keep near target
+            $('#tgww_hr_val').text(newHr);
+        }
     }
+}, 2000);
+
+async function initTgww() {
+    console.log(`🚀 共感娃娃 v1.0.8 启动 - 全新实验舱模式`);
+    const $ = window.jQuery;
+    if (!$) return;
     
     const settingsObj = loadSettings();
 
-    try {
-        const settingsHtmlUrl = new URL('./settings.html', BASE_URL).href;
-        const settingsHtml = await (await fetch(settingsHtmlUrl)).text();
-        $('#extensions_settings').append(settingsHtml);
-    } catch (e) {
-        console.error('Failed to load settings.html', e);
-    }
-
+    // 绑定设置项事件
     const inputs = ['tgww_enabled', 'tgww_api_mode', 'tgww_api_url', 'tgww_api_key', 'tgww_api_model'];
     inputs.forEach(id => {
         const el = $(`#${id}`);
@@ -290,8 +385,8 @@ async function initTgww() {
             saveSettings();
             
             if(id === 'tgww_api_mode') {
-                if(val === 'custom') $('#tgww_custom_api_settings').show();
-                else $('#tgww_custom_api_settings').hide();
+                if(val === 'custom') $('#tgww_custom_api_settings').slideDown();
+                else $('#tgww_custom_api_settings').slideUp();
             }
         });
     });
@@ -300,19 +395,9 @@ async function initTgww() {
         $('#tgww_custom_api_settings').show();
     }
 
-    try {
-        const gameHtmlUrl = new URL('./game.html', BASE_URL).href;
-        const gameHtml = await (await fetch(gameHtmlUrl)).text();
-        $('body').append(gameHtml);
-    } catch (e) {
-        console.error('Failed to load game.html', e);
-    }
-
     const wrapper = $('#tgww_wrapper');
     wrapper.on('click', (e) => {
-        if(e.target === wrapper[0]) {
-            wrapper.hide();
-        }
+        if(e.target === wrapper[0]) wrapper.fadeOut(200);
     });
 
     $('#tgww_btn_enter').on('click', () => {
@@ -336,11 +421,11 @@ async function initTgww() {
     });
 
     $('#tgww_btn_reset').on('click', () => {
-        gameState = { hr: 70, sus: 0, active: true, arrested: false };
+        gameState = { hr: 72, sus: 0, active: true, arrested: false };
         $('#tgww_arrest').removeClass('active');
         $('#tgww_main').addClass('active');
-        $('#tgww_logs').empty().append('<div class="tgww-log-entry" style="color: #666;">记忆已重置...重新开始记录。</div>');
-        $('#tgww_summary').text('等待连接...');
+        $('#tgww_logs').empty().append('<div class="tgww-log-entry" style="color: #666;">[SYSTEM] 记录已重置...重新开始收集实验数据。</div>');
+        $('#tgww_summary').text('实验舱已重启，等待数据接入...');
         $('#tgww_easter_egg_text').css('opacity', 0);
         $('#tgww_btn_easter_egg').hide();
         updateUI();
@@ -348,85 +433,21 @@ async function initTgww() {
 
     const openGameUI = () => {
         if (wrapper && wrapper.length) {
-            wrapper.css({
-                display: 'flex',
-                position: 'fixed',
-                top: 0, left: 0, right: 0, bottom: 0,
-                background: 'rgba(0,0,0,0.8)',
-                zIndex: 2147483647,
-                justifyContent: 'center',
-                alignItems: 'center'
-            });
+            wrapper.fadeIn(200).css('display', 'flex');
         }
     };
 
+    // 注入浮动按钮
     if (!document.getElementById('tgww_open_btn')) {
         const triggerBtn = document.createElement('div');
         triggerBtn.id = 'tgww_open_btn';
-        triggerBtn.title = '共感娃娃番外';
-        triggerBtn.innerHTML = '<i class="fa-solid fa-heart"></i>';
-        triggerBtn.style.cssText = 'position:fixed; bottom:120px; right:30px; z-index:2147483647; background:rgba(255,0,50,0.9); color:white; width:50px; height:50px; border-radius:50%; display:flex; justify-content:center; align-items:center; cursor:pointer; box-shadow:0 0 15px rgba(255,0,50,0.8); font-size:24px; transition:all 0.3s;';
+        triggerBtn.title = '共感娃娃番外实验舱';
+        triggerBtn.innerHTML = '<i class="fa-solid fa-flask"></i>';
+        triggerBtn.style.cssText = 'position:fixed; bottom:130px; right:35px; z-index:2147483647; background:rgba(17,19,20,0.9); color:#ff3344; width:45px; height:45px; border-radius:50%; display:flex; justify-content:center; align-items:center; cursor:pointer; box-shadow:0 0 15px rgba(255,51,68,0.4); border: 1px solid rgba(255,51,68,0.3); font-size:20px; transition:all 0.3s cubic-bezier(0.4, 0, 0.2, 1);';
         triggerBtn.onclick = openGameUI;
         triggerBtn.onmouseover = () => triggerBtn.style.transform = 'scale(1.1)';
         triggerBtn.onmouseout = () => triggerBtn.style.transform = 'scale(1)';
         document.body.appendChild(triggerBtn);
-    }
-
-    if (!document.getElementById('tgww_chat_btn')) {
-        const chatInputBtn = document.createElement('div');
-        chatInputBtn.id = 'tgww_chat_btn';
-        chatInputBtn.className = 'mes_button';
-        chatInputBtn.title = '共感娃娃番外';
-        chatInputBtn.innerHTML = '<i class="fa-solid fa-heart"></i>';
-        chatInputBtn.style.cssText = 'cursor:pointer; margin-left: 5px; color:#ff3333; font-size: 1.2em; display:flex; align-items:center; padding: 5px;';
-        chatInputBtn.onclick = openGameUI;
-
-        const formGroup = document.querySelector('#send_form #chat_and_send_buttons') || 
-                          document.querySelector('#send_form #chat_buttons') || 
-                          document.querySelector('#send_form .flex-container');
-        if (formGroup) {
-            formGroup.prepend(chatInputBtn);
-        } else {
-            const sendTextarea = document.getElementById('send_textarea');
-            if (sendTextarea && sendTextarea.parentNode) {
-                sendTextarea.parentNode.insertBefore(chatInputBtn, sendTextarea);
-            }
-        }
-    }
-        
-    if (!document.getElementById('tgww_top_btn')) {
-        const topMenuBtn = document.createElement('div');
-        topMenuBtn.id = 'tgww_top_btn';
-        topMenuBtn.className = 'menu_button';
-        topMenuBtn.title = '共感娃娃番外';
-        topMenuBtn.innerHTML = '<i class="fa-solid fa-heart" style="color:#ff3333;"></i> <span>共感娃娃</span>';
-        topMenuBtn.style.cursor = 'pointer';
-        topMenuBtn.onclick = openGameUI;
-        
-        const topMenu = document.querySelector('#extensionsMenu') || 
-                        document.querySelector('#top-bar') || 
-                        document.querySelector('.top-bar-extensions');
-        if (topMenu) {
-            topMenu.appendChild(topMenuBtn);
-        }
-    }
-
-    try {
-        if (typeof window.SlashCommandParser !== 'undefined' && window.SlashCommandParser.addCommandObject) {
-            window.SlashCommandParser.addCommandObject(
-                window.SlashCommandParser.addCommand('tgww', async () => {
-                    openGameUI();
-                    return '';
-                }, [], '打开共感娃娃番外互动界面')
-            );
-        } else if (typeof registerSlashCommand === 'function') {
-            registerSlashCommand('tgww', async () => {
-                openGameUI();
-                return '';
-            }, [], '打开共感娃娃番外互动界面');
-        }
-    } catch (e) {
-        console.warn("[tgww] 注册斜杠命令失败:", e);
     }
 }
 
@@ -435,4 +456,3 @@ if (document.readyState === 'loading') {
 } else {
     initTgww();
 }
-

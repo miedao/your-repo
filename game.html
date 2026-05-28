@@ -12,21 +12,23 @@
             <!-- Status Bar -->
             <div class="tgww-status-bar">
                 <div class="tgww-status-row">
-                    <div class="tgww-hr"><span class="tgww-hr-icon">♥</span> <span id="tgww_hr_val">72</span> bpm</div>
+                    <div class="tgww-hr"><span class="tgww-hr-icon"><i class="fa-solid fa-heart-pulse"></i></span> <span id="tgww_hr_val">72</span> bpm</div>
                     <div class="tgww-suspicion-container" title="怀疑度">
                         <div class="tgww-suspicion-bar" id="tgww_suspicion_bar" style="width: 0%;"></div>
                     </div>
                     <div style="font-size: 12px; color: #888; margin-left: 10px;"><span id="tgww_suspicion_val">0</span>/100</div>
                 </div>
-                <div class="tgww-reaction-summary" id="tgww_summary">等待连接...</div>
+                <div class="tgww-reaction-summary" id="tgww_summary">实验舱已启动，等待数据接入...</div>
             </div>
 
             <!-- Interactive Doll Area -->
             <div class="tgww-doll-area">
                 <div class="tgww-doll-visual">
-                    <div class="tgww-doll-head"></div>
-                    <div class="tgww-doll-body"></div>
-                    <div class="tgww-doll-arms"></div>
+                    <div class="tgww-doll-head"><div class="tgww-doll-label">HEAD</div></div>
+                    <div class="tgww-doll-body">
+                        <div class="tgww-doll-label">BODY</div>
+                        <div class="tgww-ecg-line"></div>
+                    </div>
                     <div class="tgww-scanline"></div>
                 </div>
                 <!-- 9 Buttons -->
@@ -38,12 +40,12 @@
                 <button class="tgww-action-btn tgww-btn-hug" data-action="拥抱娃娃">拥抱娃娃</button>
                 <button class="tgww-action-btn tgww-btn-ear" data-action="捏捏耳朵">捏捏耳朵</button>
                 <button class="tgww-action-btn tgww-btn-clothes" data-action="拉衣角">拉衣角</button>
-                <button class="tgww-action-btn tgww-btn-high" data-action="高能动作">⚠ 危险触碰</button>
+                <button class="tgww-action-btn tgww-btn-high" data-action="自定义高能动作">⚠ 危险触碰</button>
             </div>
 
             <!-- Logs / History -->
             <div class="tgww-logs" id="tgww_logs">
-                <div class="tgww-log-entry" style="color: #666;">系统初始化完毕...开始记录交互。</div>
+                <div class="tgww-log-entry" style="color: #666;">[SYSTEM] 神经连接建立完毕...开始记录交互日志。</div>
             </div>
         </div>
 
@@ -60,6 +62,8 @@
         <div class="tgww-warning-toast" id="tgww_toast"></div>
         
         <!-- Loading -->
-        <div class="tgww-loading" id="tgww_loading">分析反馈中...</div>
+        <div class="tgww-loading" id="tgww_loading">
+            <i class="fa-solid fa-spinner fa-spin"></i> 分析反馈中...
+        </div>
     </div>
 </div>
