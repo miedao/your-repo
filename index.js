@@ -305,27 +305,33 @@ async function setupGameUI() {
     try {
         console.log("[tgww] 正在初始化共感娃娃 UI...");
 
-        // 1. 添加全局悬浮按钮
-        const triggerBtn = $('<div id="tgww_open_btn" title="共感娃娃番外" style="position:fixed; bottom:80px; right:20px; z-index:9990; background:rgba(255,0,50,0.8); color:white; width:45px; height:45px; border-radius:50%; display:flex; justify-content:center; align-items:center; cursor:pointer; box-shadow:0 0 10px rgba(255,0,50,0.5); font-size:20px; transition:all 0.3s;"><i class="fa-solid fa-heart"></i></div>');
+        // 1. 添加全局悬浮按钮 (绝对强制显示)
+        const triggerBtn = $('<div id="tgww_open_btn" title="共感娃娃番外" style="position:fixed; bottom:120px; right:30px; z-index:2147483647; background:rgba(255,0,50,0.9); color:white; width:50px; height:50px; border-radius:50%; display:flex; justify-content:center; align-items:center; cursor:pointer; box-shadow:0 0 15px rgba(255,0,50,0.8); font-size:24px; transition:all 0.3s;"><i class="fa-solid fa-heart"></i></div>');
         
-        // 2. 添加到顶部扩展菜单 (更符合 ST/Luker 原生习惯)
+        // 2. 添加到聊天输入框旁边的按钮组 (更符合 ST/Luker 习惯)
+        const chatInputBtn = $('<div id="tgww_chat_btn" class="mes_button" title="共感娃娃番外" style="cursor:pointer; margin-left: 5px; color:#ff3333; font-size: 1.2em; display:flex; align-items:center; padding: 5px;"><i class="fa-solid fa-heart"></i></div>');
+
+        // 3. 顶部扩展菜单兜底
         const topMenuBtn = $('<div id="tgww_top_btn" class="menu_button" title="共感娃娃番外" style="cursor:pointer;"><i class="fa-solid fa-heart" style="color:#ff3333;"></i> <span>共感娃娃</span></div>');
         
-        if(!extension_settings[EXTENSION_NAME].enabled) {
-            triggerBtn.hide();
-            topMenuBtn.hide();
-        }
+        // 忽略 settings，强制显示以便调试
+        // if(!extension_settings[EXTENSION_NAME].enabled) { ... }
         
         $('body').append(triggerBtn);
+        
+        // 尝试插入到聊天框右侧的按钮组
+        const chatButtonGroup = $('#send_form #chat_and_send_buttons, #send_form #chat_buttons, #send_form .flex-container');
+        if (chatButtonGroup.length) {
+            chatButtonGroup.first().prepend(chatInputBtn);
+        } else {
+            // 如果没找到标准输入框区域，强行加到输入框前面
+            $('#send_textarea').before(chatInputBtn);
+        }
         
         // 尝试添加到顶部菜单栏的扩展容器中
         const topMenu = $('#extensionsMenu, #top-bar, .top-bar-extensions');
         if (topMenu.length) {
             topMenu.first().append(topMenuBtn);
-        } else {
-            // 兜底：加到页面左上角
-            topMenuBtn.css({position: 'fixed', top: '10px', left: '10px', zIndex: 9990, background: 'rgba(0,0,0,0.5)', padding: '5px 10px', borderRadius: '5px', color: 'white'});
-            $('body').append(topMenuBtn);
         }
 
         // Load Game HTML
@@ -340,13 +346,14 @@ async function setupGameUI() {
                 'position': 'fixed',
                 'top': '0', 'left': '0', 'right': '0', 'bottom': '0',
                 'background': 'rgba(0,0,0,0.8)',
-                'z-index': '9999',
+                'z-index': '2147483647',
                 'justify-content': 'center',
                 'align-items': 'center'
             });
         };
 
         triggerBtn.on('click', openGameUI);
+        chatInputBtn.on('click', openGameUI);
         topMenuBtn.on('click', openGameUI);
         
         // Hover effects
@@ -426,11 +433,16 @@ jQuery(async () => {
         const context = window.Luker ? window.Luker.getContext() : getContext();
         if (context && context.eventSource) {
             context.eventSource.on(event_types.APP_READY, () => {
-                console.log("[tgww] APP_READY 触发");
+                console.log("[tgww] APP_READY 触发, UI应该已经完全注入");
             });
         }
         
-        console.log("[tgww] 插件加载成功!");
+        // 忽略插件面板里的状态，强行保证按钮可见
+        $('#tgww_open_btn').show();
+        $('#tgww_chat_btn').show();
+        $('#tgww_top_btn').show();
+        
+        console.log("[tgww] 插件加载成功! 注入了多个入口，Z-index: 2147483647");
     } catch (e) {
         console.error("[tgww] 插件加载失败:", e);
     }
