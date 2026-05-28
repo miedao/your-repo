@@ -1,6 +1,9 @@
 import { extension_settings, getContext } from '../../../extensions.js';
+import { eventSource, event_types } from '../../../../script.js';
+import { registerSlashCommand } from '../../../slash-commands.js';
 
 const EXTENSION_NAME = 'tgww';
+const extensionFolderPath = `scripts/extensions/third-party/${EXTENSION_NAME}`;
 
 const defaultSettings = {
     enabled: true,
@@ -263,46 +266,7 @@ async function triggerArrest() {
 // Setup Settings UI
 async function setupSettings() {
     try {
-        const settingsHtml = `
-<div class="tgww-settings" data-extension-name="tgww">
-    <div class="inline-drawer">
-        <div class="inline-drawer-toggle inline-drawer-header">
-            <b>共感娃娃 (Empathy Doll) 番外插件</b>
-            <div class="inline-drawer-icon fa-solid fa-circle-chevron-down"></div>
-        </div>
-        <div class="inline-drawer-content">
-            <div class="flex-container alignitemscenter flexFlowColumn gap-2">
-                <label class="checkbox_label" title="在发送按钮旁显示共感娃娃的入口图标">
-                    <input type="checkbox" id="tgww_enabled" />
-                    <span>启用共感娃娃快速入口</span>
-                </label>
-                
-                <hr class="sysdef_hr">
-                
-                <label for="tgww_api_mode" title="LLM 接口选择">生成模式:</label>
-                <select id="tgww_api_mode" class="text_pole">
-                    <option value="internal">使用当前对话大模型 (推荐)</option>
-                    <option value="custom">自定义 OpenAI 兼容接口</option>
-                </select>
-
-                <div id="tgww_custom_api_settings" style="display: none; width: 100%; flex-direction: column; gap: 5px;">
-                    <label for="tgww_api_url">自定义 API URL:</label>
-                    <input type="text" id="tgww_api_url" class="text_pole" placeholder="https://api.openai.com/v1/chat/completions" />
-                    
-                    <label for="tgww_api_key">API Key:</label>
-                    <input type="password" id="tgww_api_key" class="text_pole" placeholder="sk-..." />
-                    
-                    <label for="tgww_api_model">模型名称:</label>
-                    <input type="text" id="tgww_api_model" class="text_pole" placeholder="gpt-4o-mini" />
-                </div>
-
-                <small style="color: var(--SmartThemeBodyColor); opacity: 0.8; margin-top: 5px;">
-                    * 当怀疑度累计达到 100 时会触发逮捕剧情。所有数据存储在本地。
-                </small>
-            </div>
-        </div>
-    </div>
-</div>`;
+        const settingsHtml = await $.get(`${extensionFolderPath}/settings.html`);
         $('#extensions_settings').append(settingsHtml);
 
         const inputs = ['tgww_enabled', 'tgww_api_mode', 'tgww_api_url', 'tgww_api_key', 'tgww_api_model'];
@@ -364,71 +328,8 @@ async function setupGameUI() {
             $('body').append(topMenuBtn);
         }
 
-        // Load Game HTML directly
-        const gameHtmlStr = `
-<div class="tgww-container-wrapper" style="display: none;" id="tgww_wrapper">
-    <div class="tgww-popup-container" id="tgww_app">
-        <!-- Cover -->
-        <div class="tgww-cover" id="tgww_cover">
-            <h1>共感娃娃·实验日志</h1>
-            <p>你碰的每一处，他都知道。</p>
-            <button class="tgww-btn-enter" id="tgww_btn_enter">进入实验室</button>
-        </div>
-
-        <!-- Main UI -->
-        <div class="tgww-main" id="tgww_main">
-            <!-- Status Bar -->
-            <div class="tgww-status-bar">
-                <div class="tgww-status-row">
-                    <div class="tgww-hr"><span class="tgww-hr-icon">♥</span> <span id="tgww_hr_val">72</span> bpm</div>
-                    <div class="tgww-suspicion-container" title="怀疑度">
-                        <div class="tgww-suspicion-bar" id="tgww_suspicion_bar" style="width: 0%;"></div>
-                    </div>
-                    <div style="font-size: 12px; color: #888; margin-left: 10px;"><span id="tgww_suspicion_val">0</span>/100</div>
-                </div>
-                <div class="tgww-reaction-summary" id="tgww_summary">等待连接...</div>
-            </div>
-
-            <!-- Interactive Doll Area -->
-            <div class="tgww-doll-area">
-                <div class="tgww-doll-visual">
-                    [ 信号连接中... ]<br/>
-                    (人形轮廓传感器)
-                </div>
-                <!-- 9 Buttons -->
-                <button class="tgww-action-btn tgww-btn-head" data-action="摸摸头">摸摸头</button>
-                <button class="tgww-action-btn tgww-btn-ear" data-action="捏捏耳朵">捏捏耳朵</button>
-                <button class="tgww-action-btn tgww-btn-face" data-action="亲亲脸">亲亲脸</button>
-                <button class="tgww-action-btn tgww-btn-neck" data-action="自定义">未明动作</button>
-                <button class="tgww-action-btn tgww-btn-back" data-action="拍拍背">拍拍背</button>
-                <button class="tgww-action-btn tgww-btn-waist" data-action="戳戳腰">戳戳腰</button>
-                <button class="tgww-action-btn tgww-btn-hand" data-action="捏捏手">捏捏手</button>
-                <button class="tgww-action-btn tgww-btn-clothes" data-action="拉衣角">拉衣角</button>
-                <button class="tgww-action-btn tgww-btn-hug" data-action="拥抱娃娃">拥抱娃娃</button>
-            </div>
-
-            <!-- Logs / History -->
-            <div class="tgww-logs" id="tgww_logs">
-                <div class="tgww-log-entry" style="color: #666;">系统初始化完毕...开始记录交互。</div>
-            </div>
-        </div>
-
-        <!-- Arrest Screen -->
-        <div class="tgww-arrest" id="tgww_arrest">
-            <h2>WARNING: 连接反演</h2>
-            <div class="tgww-arrest-text" id="tgww_arrest_text"></div>
-            <button class="tgww-easter-egg-btn" id="tgww_btn_easter_egg" style="display:none;">娃娃的余温</button>
-            <div class="tgww-easter-egg-text" id="tgww_easter_egg_text"></div>
-            <button class="tgww-btn-enter" id="tgww_btn_reset" style="margin-top: 20px; font-size: 12px; padding: 5px 15px;">重置实验</button>
-        </div>
-
-        <!-- Toast -->
-        <div class="tgww-warning-toast" id="tgww_toast"></div>
-        
-        <!-- Loading -->
-        <div class="tgww-loading" id="tgww_loading">分析反馈中...</div>
-    </div>
-</div>`;
+        // Load Game HTML
+        const gameHtmlStr = await $.get(`${extensionFolderPath}/game.html`);
         $('body').append(gameHtmlStr);
 
         const wrapper = $('#tgww_wrapper');
@@ -454,21 +355,19 @@ async function setupGameUI() {
             function() { $(this).css('transform', 'scale(1)'); }
         );
 
-        // Register slash command as an alternative trigger
+        // Register slash command exactly as documented
         try {
-            if (typeof SlashCommandParser !== 'undefined' && SlashCommandParser.addCommand) {
-                SlashCommandParser.addCommand('tgww', async () => {
+            registerSlashCommand(
+                'tgww',
+                async (args, value) => {
                     openGameUI();
                     return '';
-                }, [], '打开共感娃娃番外互动界面');
-            } else if (typeof window.registerSlashCommand === 'function') {
-                window.registerSlashCommand('tgww', async () => {
-                    openGameUI();
-                    return '';
-                }, [], '打开共感娃娃番外互动界面');
-            }
+                },
+                [],
+                '打开共感娃娃番外互动界面'
+            );
         } catch (e) {
-            console.warn("[tgww] 注册斜杠命令失败，可能当前版本不支持:", e);
+            console.warn("[tgww] 注册斜杠命令失败:", e);
         }
 
         // Close on click outside
@@ -516,30 +415,23 @@ async function setupGameUI() {
     }
 }
 
-// Init
+// 插件入口
 console.log("[tgww] 插件开始加载...");
-if (!window.TGWW_Loaded_v104) {
-    window.TGWW_Loaded_v104 = true;
-    
-    // We run setupGameUI IMMEDIATELY to guarantee the button shows up.
-    // We don't wait for settings to load.
-    setupGameUI();
-
-    jQuery(async () => {
-        try {
-            loadSettings();
-            await setupSettings();
-            
-            // Sync initial state of buttons
-            const enabled = extension_settings[EXTENSION_NAME].enabled;
-            $('#tgww_open_btn').toggle(enabled);
-            $('#tgww_top_btn').toggle(enabled);
-
-            console.log("[tgww] 插件加载成功!");
-        } catch (e) {
-            console.error("[tgww] 插件异步加载失败:", e);
+jQuery(async () => {
+    try {
+        loadSettings();
+        await setupSettings();
+        await setupGameUI();
+        
+        const context = window.Luker ? window.Luker.getContext() : getContext();
+        if (context && context.eventSource) {
+            context.eventSource.on(event_types.APP_READY, () => {
+                console.log("[tgww] APP_READY 触发");
+            });
         }
-    });
-} else {
-    console.warn("[tgww] 插件已加载，跳过重复初始化。");
-}
+        
+        console.log("[tgww] 插件加载成功!");
+    } catch (e) {
+        console.error("[tgww] 插件加载失败:", e);
+    }
+});
