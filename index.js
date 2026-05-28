@@ -1,10 +1,9 @@
-import { extension_settings, getContext } from '../../../extensions.js';
-import { eventSource, event_types } from '../../../../script.js';
+import { extension_settings } from '../../../extensions.js';
 import { registerSlashCommand } from '../../../slash-commands.js';
-import { callGenericPopup, POPUP_TYPE } from '../../../popup.js';
 
 const EXTENSION_NAME = 'tgww';
-const extensionFolderPath = `scripts/extensions/third-party/${EXTENSION_NAME}`;
+// 使用 import.meta.url 动态获取当前路径，避免因安装目录不同导致 404
+const extensionBaseUrl = new URL('./', import.meta.url).href;
 
 const defaultSettings = {
     enabled: true,
@@ -174,11 +173,15 @@ User点击了：【${actionName}】。
             $('#tgww_loading').hide();
         }
     } else if (settings.apiMode === 'internal') {
-        const context = getContext();
-        if (context.generateQuietPrompt) {
+        const context = window.Luker ? window.Luker.getContext() : (window.SillyTavern ? window.SillyTavern.getContext() : null);
+        if (context && context.generateQuietPrompt) {
             // Internal Luker API Generation could be invoked here if supported without modifying core chat
             // For safety and immediate response in this mock game without polluting chat context, we randomly pick from presets
             // But we simulate a delay.
+            $('#tgww_loading').show();
+            await new Promise(r => setTimeout(r, 800));
+            $('#tgww_loading').hide();
+        } else {
             $('#tgww_loading').show();
             await new Promise(r => setTimeout(r, 800));
             $('#tgww_loading').hide();
@@ -262,114 +265,167 @@ async function triggerArrest() {
 
 // Setup Settings UI
 async function setupSettings() {
-    const settingsHtml = await $.get(`${extensionFolderPath}/settings.html`);
-    $('#extensions_settings').append(settingsHtml);
+    try {
+        const settingsHtmlUrl = new URL('./settings.html', import.meta.url).href;
+        const settingsHtml = await $.get(settingsHtmlUrl);
+        $('#extensions_settings').append(settingsHtml);
 
-    const inputs = ['tgww_enabled', 'tgww_api_mode', 'tgww_api_url', 'tgww_api_key', 'tgww_api_model'];
-    
-    inputs.forEach(id => {
-        const el = $(`#${id}`);
-        if(el.is(':checkbox')) el.prop('checked', extension_settings[EXTENSION_NAME][id.replace('tgww_', '')]);
-        else el.val(extension_settings[EXTENSION_NAME][id.replace('tgww_', '')] || '');
+        const inputs = ['tgww_enabled', 'tgww_api_mode', 'tgww_api_url', 'tgww_api_key', 'tgww_api_model'];
         
-        el.on('change', function() {
-            let val = $(this).is(':checkbox') ? $(this).prop('checked') : $(this).val();
-            extension_settings[EXTENSION_NAME][id.replace('tgww_', '')] = val;
-            saveSettings();
+        inputs.forEach(id => {
+            const el = $(`#${id}`);
+            if(el.is(':checkbox')) el.prop('checked', extension_settings[EXTENSION_NAME][id.replace('tgww_', '')]);
+            else el.val(extension_settings[EXTENSION_NAME][id.replace('tgww_', '')] || '');
             
-            if(id === 'tgww_api_mode') {
-                if(val === 'custom') $('#tgww_custom_api_settings').show();
-                else $('#tgww_custom_api_settings').hide();
-            }
-            if(id === 'tgww_enabled') {
-                $('#tgww_open_btn').toggle(val);
-            }
+            el.on('change', function() {
+                let val = $(this).is(':checkbox') ? $(this).prop('checked') : $(this).val();
+                extension_settings[EXTENSION_NAME][id.replace('tgww_', '')] = val;
+                saveSettings();
+                
+                if(id === 'tgww_api_mode') {
+                    if(val === 'custom') $('#tgww_custom_api_settings').show();
+                    else $('#tgww_custom_api_settings').hide();
+                }
+                if(id === 'tgww_enabled') {
+                    $('#tgww_open_btn').toggle(val);
+                    $('#tgww_top_btn').toggle(val);
+                }
+            });
         });
-    });
 
-    if(extension_settings[EXTENSION_NAME].apiMode === 'custom') {
-        $('#tgww_custom_api_settings').show();
+        if(extension_settings[EXTENSION_NAME].apiMode === 'custom') {
+            $('#tgww_custom_api_settings').show();
+        }
+    } catch(e) {
+        console.error("[tgww] 渲染设置面板失败:", e);
     }
 }
 
 // Inject Game Button and Slash Command
 async function setupGameUI() {
-    // Add Trigger Button as a floating button in the bottom right, to avoid finding specific layout IDs
-    const triggerBtn = $('<div id="tgww_open_btn" title="共感娃娃番外" style="position:fixed; bottom:80px; right:20px; z-index:999; background:rgba(255,0,50,0.8); color:white; width:45px; height:45px; border-radius:50%; display:flex; justify-content:center; align-items:center; cursor:pointer; box-shadow:0 0 10px rgba(255,0,50,0.5); font-size:20px;"><i class="fa-solid fa-heart"></i></div>');
-    
-    if(!extension_settings[EXTENSION_NAME].enabled) triggerBtn.hide();
-    
-    $('body').append(triggerBtn);
+    try {
+        console.log("[tgww] 正在初始化共感娃娃 UI...");
 
-    // Load Game HTML to body as an absolute overlay layer
-    const gameHtmlStr = await $.get(`${extensionFolderPath}/game.html`);
-    $('body').append(gameHtmlStr);
-
-    const wrapper = $('#tgww_wrapper');
-    
-    const openGameUI = () => {
-        wrapper.css({
-            'display': 'flex',
-            'position': 'fixed',
-            'top': '0', 'left': '0', 'right': '0', 'bottom': '0',
-            'background': 'rgba(0,0,0,0.8)',
-            'z-index': '9999',
-            'justify-content': 'center',
-            'align-items': 'center'
-        });
-    };
-
-    triggerBtn.on('click', openGameUI);
-    
-    // Register slash command as an alternative trigger
-    registerSlashCommand('tgww', async () => {
-        openGameUI();
-        return '';
-    }, [], '打开共感娃娃番外互动界面');
-
-    // Close on click outside
-    wrapper.on('click', (e) => {
-        if(e.target === wrapper[0]) {
-            wrapper.hide();
+        // 1. 添加全局悬浮按钮
+        const triggerBtn = $('<div id="tgww_open_btn" title="共感娃娃番外" style="position:fixed; bottom:80px; right:20px; z-index:9990; background:rgba(255,0,50,0.8); color:white; width:45px; height:45px; border-radius:50%; display:flex; justify-content:center; align-items:center; cursor:pointer; box-shadow:0 0 10px rgba(255,0,50,0.5); font-size:20px; transition:all 0.3s;"><i class="fa-solid fa-heart"></i></div>');
+        
+        // 2. 添加到顶部扩展菜单 (更符合 ST/Luker 原生习惯)
+        const topMenuBtn = $('<div id="tgww_top_btn" class="menu_button" title="共感娃娃番外" style="cursor:pointer;"><i class="fa-solid fa-heart" style="color:#ff3333;"></i> <span>共感娃娃</span></div>');
+        
+        if(!extension_settings[EXTENSION_NAME].enabled) {
+            triggerBtn.hide();
+            topMenuBtn.hide();
         }
-    });
+        
+        $('body').append(triggerBtn);
+        
+        // 尝试添加到顶部菜单栏的扩展容器中
+        const topMenu = $('#extensionsMenu, #top-bar, .top-bar-extensions');
+        if (topMenu.length) {
+            topMenu.first().append(topMenuBtn);
+        } else {
+            // 兜底：加到页面左上角
+            topMenuBtn.css({position: 'fixed', top: '10px', left: '10px', zIndex: 9990, background: 'rgba(0,0,0,0.5)', padding: '5px 10px', borderRadius: '5px', color: 'white'});
+            $('body').append(topMenuBtn);
+        }
 
-    // Event Bindings for Game
-    $('#tgww_btn_enter').on('click', () => {
-        $('#tgww_cover').css('opacity', 0);
-        setTimeout(() => {
-            $('#tgww_cover').hide();
+        // Load Game HTML using robust URL
+        const gameHtmlUrl = new URL('./game.html', import.meta.url).href;
+        const gameHtmlStr = await $.get(gameHtmlUrl);
+        $('body').append(gameHtmlStr);
+
+        const wrapper = $('#tgww_wrapper');
+        
+        const openGameUI = () => {
+            wrapper.css({
+                'display': 'flex',
+                'position': 'fixed',
+                'top': '0', 'left': '0', 'right': '0', 'bottom': '0',
+                'background': 'rgba(0,0,0,0.8)',
+                'z-index': '9999',
+                'justify-content': 'center',
+                'align-items': 'center'
+            });
+        };
+
+        triggerBtn.on('click', openGameUI);
+        topMenuBtn.on('click', openGameUI);
+        
+        // Hover effects
+        triggerBtn.hover(
+            function() { $(this).css('transform', 'scale(1.1)'); },
+            function() { $(this).css('transform', 'scale(1)'); }
+        );
+
+        // Register slash command as an alternative trigger
+        try {
+            registerSlashCommand('tgww', async () => {
+                openGameUI();
+                return '';
+            }, [], '打开共感娃娃番外互动界面');
+        } catch (e) {
+            console.warn("[tgww] 注册斜杠命令失败，可能当前版本不支持:", e);
+        }
+
+        // Close on click outside
+        wrapper.on('click', (e) => {
+            if(e.target === wrapper[0]) {
+                wrapper.hide();
+            }
+        });
+
+        // Event Bindings for Game
+        $('#tgww_btn_enter').on('click', () => {
+            $('#tgww_cover').css('opacity', 0);
+            setTimeout(() => {
+                $('#tgww_cover').hide();
+                $('#tgww_main').addClass('active');
+                gameState.active = true;
+            }, 500);
+        });
+
+        $('.tgww-action-btn').on('click', function() {
+            if (!gameState.active || gameState.arrested) return;
+            const action = $(this).data('action');
+            generateReaction(action);
+        });
+
+        $('#tgww_btn_easter_egg').on('click', function() {
+            $(this).hide();
+            $('#tgww_easter_egg_text').css('opacity', 1);
+        });
+
+        $('#tgww_btn_reset').on('click', () => {
+            gameState = { hr: 70, sus: 0, active: true, arrested: false };
+            $('#tgww_arrest').removeClass('active');
             $('#tgww_main').addClass('active');
-            gameState.active = true;
-        }, 500);
-    });
-
-    $('.tgww-action-btn').on('click', function() {
-        if (!gameState.active || gameState.arrested) return;
-        const action = $(this).data('action');
-        generateReaction(action);
-    });
-
-    $('#tgww_btn_easter_egg').on('click', function() {
-        $(this).hide();
-        $('#tgww_easter_egg_text').css('opacity', 1);
-    });
-
-    $('#tgww_btn_reset').on('click', () => {
-        gameState = { hr: 70, sus: 0, active: true, arrested: false };
-        $('#tgww_arrest').removeClass('active');
-        $('#tgww_main').addClass('active');
-        $('#tgww_logs').empty().append('<div class="tgww-log-entry" style="color: #666;">记忆已重置...重新开始记录。</div>');
-        $('#tgww_summary').text('等待连接...');
-        $('#tgww_easter_egg_text').css('opacity', 0);
-        $('#tgww_btn_easter_egg').hide();
-        updateUI();
-    });
+            $('#tgww_logs').empty().append('<div class="tgww-log-entry" style="color: #666;">记忆已重置...重新开始记录。</div>');
+            $('#tgww_summary').text('等待连接...');
+            $('#tgww_easter_egg_text').css('opacity', 0);
+            $('#tgww_btn_easter_egg').hide();
+            updateUI();
+        });
+        
+        console.log("[tgww] UI 注入完成!");
+    } catch (e) {
+        console.error("[tgww] 初始化 UI 遇到错误:", e);
+    }
 }
 
 // Init
-jQuery(async () => {
-    loadSettings();
-    await setupSettings();
-    await setupGameUI();
-});
+console.log("[tgww] 插件开始加载...");
+if (!window.TGWW_Loaded) {
+    window.TGWW_Loaded = true;
+    jQuery(async () => {
+        try {
+            loadSettings();
+            await setupSettings();
+            await setupGameUI();
+            console.log("[tgww] 插件加载成功!");
+        } catch (e) {
+            console.error("[tgww] 插件加载失败:", e);
+        }
+    });
+} else {
+    console.warn("[tgww] 插件已加载，跳过重复初始化。");
+}
