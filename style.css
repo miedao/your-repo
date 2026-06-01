@@ -13,7 +13,8 @@
 .tgww-popup-container {
     width: 100%;
     max-width: 450px;
-    height: 640px;
+    height: 100%;
+    max-height: 640px;
     background: #111314; /* 浅灰暗黑背景 */
     border: 1px solid rgba(139, 0, 0, 0.4);
     border-radius: 8px;
@@ -24,6 +25,14 @@
     color: #c0c4c8;
     display: flex;
     flex-direction: column;
+}
+
+@media screen and (max-height: 640px) {
+    .tgww-popup-container {
+        max-height: 100vh;
+        max-height: 100dvh;
+        border-radius: 0;
+    }
 }
 
 /* 实验舱背景网格 */

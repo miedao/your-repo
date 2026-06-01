@@ -235,13 +235,17 @@ async function handleArrest(charName, charPersona, userName) {
     
     const sysPrompt = `你正在为一个互动游戏写"逮捕"剧情。
 背景: User通过共感娃娃一直触摸${charName}，怀疑度达到100%，${charName}的本体顺着连接抓到了User。
-角色性格: ${charPersona}。请深度符合角色性格，绝对不可OOC！
-必须包含:
-1) ${charName}出场的方式(带有"抓到你了"的压迫感与暧昧，不少于80字)。
-2) 对User的"教育"(不少于400字，质问为什么一直碰娃娃，表达真实感受，以及惩罚措施)。
-要求：全程第三人称描写Char，第二人称描写User。直接输出纯文本故事，不带任何JSON，不带Markdown标题。`;
+角色性格: ${charPersona}。请深度读取并符合角色性格，绝对不可OOC！涉及的所有台词不得重复，如有涉及nsfw内容必须完整输出。
+要求:
+1) ${charName}的声音/文字出场方式(带有"抓到你了"的压迫感与暧昧，不少于80字)。
+2) 对User的"教育"内容(不少于400字，包括质问为什么一直碰娃娃、解释共感原理、表达真实感受及惩罚措施，教育方式根据性格设定)。
+格式要求:
+- 独立番外禁止生成正文剧情和状态栏，直接生成HTML。
+- 代码间绝对禁止生成空行，所有样式必须内联。
+- 全程第三人称描写${charName}，第二人称描写${userName}。
+- 请直接输出纯内部HTML内容，不要加外层标签，不要使用Markdown代码块。`;
     
-    let story = await callLLM(sysPrompt, `请生成逮捕剧情文本。`, false);
+    let story = await callLLM(sysPrompt, `请生成逮捕剧情HTML文本。`);
     
     // Fallback if API fails
     if (!story || typeof story === 'object') {
@@ -252,7 +256,7 @@ async function handleArrest(charName, charPersona, userName) {
     gameState.active = false;
     $('#tgww_main').removeClass('active');
     $('#tgww_arrest').addClass('active');
-    $('#tgww_arrest_text').text(story);
+    $('#tgww_arrest_text').html(story);
     
     // Unlock Easter Egg
     const eggBtn = $('#tgww_btn_easter_egg');
@@ -262,13 +266,16 @@ async function handleArrest(charName, charPersona, userName) {
         $('#tgww_loading').html('<i class="fa-solid fa-spinner fa-spin"></i> 提取余温记忆...').css('display', 'flex');
         
         const eggPrompt = `生成"娃娃的余温"彩蛋剧情(不少于150字)。
-背景: 逮捕剧情结束后，${charName}私底下偷偷检查娃娃，并自言自语说了一句关于User的话。符合性格: ${charPersona}。不带JSON格式，纯文本输出。`;
+背景: 逮捕剧情结束后，${charName}私底下偷偷检查娃娃，并自言自语说了一句关于${userName}的话。符合性格: ${charPersona}。
+格式要求: 
+- 直接生成HTML，代码间绝对禁止生成空行，所有样式必须内联。
+- 不要加外层标签，不要Markdown代码块。`;
         let eggStory = await callLLM(eggPrompt, "请生成彩蛋剧情。");
         if (!eggStory || typeof eggStory === 'object') {
             eggStory = `*在你沉睡的深夜里，${charName}独自坐在床边，捡起了那个被丢在地上的共感娃娃。他修长的指尖轻轻摩挲着娃娃的头顶和脸颊，似乎在回忆着白天从连接端传来的那一阵阵酥麻触感。他的嘴角勾起一抹连自己都没察觉到的温柔弧度，轻笑了一声：“真是个毫无防备又胆大妄为的家伙...下次，可不会这么轻易放过你了。”*`;
         }
         
-        $('#tgww_easter_egg_text').text(eggStory).css('opacity', 1);
+        $('#tgww_easter_egg_text').html(eggStory).css('opacity', 1);
         $('#tgww_loading').hide();
     });
     
@@ -295,11 +302,15 @@ async function generateReaction(action) {
         const sysPrompt = `你正在运行一个叫【共感娃娃】的互动游戏实验。
 当前角色(${charName})性格: ${charPersona}。玩家(${userName})。
 设定: ${charName}和${userName}是恋人。玩家刚刚对共感娃娃执行了动作:【${actualAction}】。${charName}会真实感受到这个触碰。
-你必须返回一个严格合法的JSON对象，绝对不要有额外的对话，格式如下:
-{
-  "sus_add": <整数，1到5之间，根据动作亲密程度决定>,
-  "reaction": "<至少40字的文本，描述${charName}的身体感受和语言/非语言反馈。必须体现共感特性(点出碰了哪里)，符合心跳变化，禁止重复句式，第三人称描写Char，第二人称描写User。>"
-}`;
+你必须返回一个严格合法的JSON对象，不要Markdown代码块，格式如下:
+{"sus_add": <整数1到5，根据动作亲密程度决定>,"reaction": "<至少40字的文本>"}
+反应文本要求:
+1) 需包含身体感受描述(如"脖子后面一麻")和语言/非语言回应。
+2) 体现"共感"特性(精准说出碰了哪里)。
+3) 结合合理的心跳变化。
+4) 禁止重复使用相同句式。
+5) 必须直接生成带内联样式的HTML(如<span style="color:#f87171">等)，代码间绝对禁止空行。
+6) ${charName}使用第三人称，${userName}使用第二人称。`;
         
         let response = await callLLM(sysPrompt, `玩家动作：${actualAction}。请生成严格的JSON反馈。`);
         
@@ -329,7 +340,7 @@ async function generateReaction(action) {
         updateUI();
         
         let displayAction = action === "自定义高能动作" ? `高能动作 [${actualAction}]` : action;
-        $('#tgww_summary').text(response.reaction);
+        $('#tgww_summary').html(response.reaction);
         addLog(displayAction, response.reaction + ` (怀疑度 +${response.sus_add})`);
 
         if (gameState.sus >= 30 && oldSus < 30) showToast("预警 | 30%: 他似乎感觉到了什么...");
@@ -402,6 +413,93 @@ async function initTgww() {
     if(settingsObj.apiMode === 'custom') {
         $('#tgww_custom_api_settings').show();
     }
+
+    // Bind Fetch Models Button
+    $('#tgww_btn_fetch_models').on('click', async function() {
+        const urlStr = $('#tgww_api_url').val() || settingsObj.apiUrl;
+        const key = $('#tgww_api_key').val() || settingsObj.apiKey;
+        if (!urlStr) {
+            toastr.error("请先输入 API URL");
+            return;
+        }
+        $(this).html('<i class="fa-solid fa-spinner fa-spin"></i> 拉取中');
+        try {
+            // URL 修正：如果以 /chat/completions 结尾，替换为 /models
+            let modelsUrl = urlStr;
+            if (modelsUrl.endsWith('/chat/completions')) {
+                modelsUrl = modelsUrl.replace('/chat/completions', '/models');
+            } else if (!modelsUrl.endsWith('/models')) {
+                // 如果没有路径结尾，尝试追加 /v1/models 或者 /models
+                if (modelsUrl.endsWith('/v1')) modelsUrl += '/models';
+                else modelsUrl = modelsUrl.replace(/\/?$/, '/v1/models');
+            }
+            
+            const res = await fetch(modelsUrl, {
+                method: 'GET',
+                headers: {
+                    'Authorization': `Bearer ${key}`
+                }
+            });
+            if (!res.ok) throw new Error(`HTTP ${res.status}`);
+            const data = await res.json();
+            if (data && data.data && Array.isArray(data.data)) {
+                const list = $('#tgww_api_model_list');
+                list.empty();
+                data.data.forEach(m => {
+                    list.append(`<option value="${m.id}"></option>`);
+                });
+                toastr.success(`成功拉取 ${data.data.length} 个模型`);
+            } else {
+                toastr.warning("未找到模型列表");
+            }
+        } catch (e) {
+            console.error("Fetch models failed:", e);
+            toastr.error("拉取模型失败: " + e.message);
+        } finally {
+            $(this).html('<i class="fa-solid fa-cloud-arrow-down"></i> 拉取模型');
+        }
+    });
+
+    // Bind Test Connection Button
+    $('#tgww_btn_test_conn').on('click', async function() {
+        const urlStr = $('#tgww_api_url').val() || settingsObj.apiUrl;
+        const key = $('#tgww_api_key').val() || settingsObj.apiKey;
+        const model = $('#tgww_api_model').val() || settingsObj.apiModel || "gpt-3.5-turbo";
+        if (!urlStr) {
+            toastr.error("请先输入 API URL");
+            return;
+        }
+        $(this).html('<i class="fa-solid fa-spinner fa-spin"></i> 测试中');
+        try {
+            const res = await fetch(urlStr, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${key}`
+                },
+                body: JSON.stringify({
+                    model: model,
+                    messages: [{ role: "user", content: "Hello, reply 'Connection OK' if you receive this." }],
+                    max_tokens: 10
+                })
+            });
+            if (!res.ok) {
+                const txt = await res.text();
+                throw new Error(`HTTP ${res.status}: ${txt}`);
+            }
+            const data = await res.json();
+            if (data && data.choices && data.choices[0] && data.choices[0].message) {
+                toastr.success("连接测试成功！");
+            } else {
+                toastr.warning("连接可能成功，但返回格式异常");
+            }
+        } catch (e) {
+            console.error("Test connection failed:", e);
+            toastr.error("测试连接失败: " + e.message);
+        } finally {
+            $(this).html('<i class="fa-solid fa-plug"></i> 测试连接');
+        }
+    });
 
     try {
         const gameHtmlUrl = new URL('./game.html', BASE_URL).href;
