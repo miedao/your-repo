@@ -389,7 +389,7 @@ async function initTgww() {
     }
 
     // 绑定设置项事件
-    const inputs = ['tgww_enabled', 'tgww_api_mode', 'tgww_api_url', 'tgww_api_key', 'tgww_api_model'];
+    const inputs = ['tgww_enabled', 'tgww_api_mode', 'tgww_api_url', 'tgww_api_key', 'tgww_api_model_list'];
     inputs.forEach(id => {
         const el = $(`#${id}`);
         if (!el.length) return;
@@ -415,30 +415,30 @@ async function initTgww() {
     }
 
     // Bind Fetch Models Button
-    $('#tgww_btn_fetch_models').on('click', async function() {
+    $('body').on('click', '#tgww_btn_fetch_models', async function() {
         const urlStr = $('#tgww_api_url').val() || settingsObj.apiUrl;
         const key = $('#tgww_api_key').val() || settingsObj.apiKey;
+        const notify = (msg, type='info') => { if(window.toastr) toastr[type](msg); else alert(msg); };
+        
         if (!urlStr) {
-            toastr.error("请先输入 API URL");
+            notify("请先输入 API URL", "error");
             return;
         }
-        $(this).html('<i class="fa-solid fa-spinner fa-spin"></i> 拉取中');
+        const btn = $(this);
+        btn.html('<i class="fa-solid fa-spinner fa-spin"></i> 拉取中');
         try {
             // URL 修正：如果以 /chat/completions 结尾，替换为 /models
             let modelsUrl = urlStr;
             if (modelsUrl.endsWith('/chat/completions')) {
                 modelsUrl = modelsUrl.replace('/chat/completions', '/models');
             } else if (!modelsUrl.endsWith('/models')) {
-                // 如果没有路径结尾，尝试追加 /v1/models 或者 /models
                 if (modelsUrl.endsWith('/v1')) modelsUrl += '/models';
                 else modelsUrl = modelsUrl.replace(/\/?$/, '/v1/models');
             }
             
             const res = await fetch(modelsUrl, {
                 method: 'GET',
-                headers: {
-                    'Authorization': `Bearer ${key}`
-                }
+                headers: { 'Authorization': `Bearer ${key}` }
             });
             if (!res.ok) throw new Error(`HTTP ${res.status}`);
             const data = await res.json();
@@ -446,30 +446,44 @@ async function initTgww() {
                 const list = $('#tgww_api_model_list');
                 list.empty();
                 data.data.forEach(m => {
-                    list.append(`<option value="${m.id}"></option>`);
+                    const selected = m.id === settingsObj.apiModelList ? 'selected' : '';
+                    list.append(`<option value="${m.id}" ${selected}>${m.id}</option>`);
                 });
-                toastr.success(`成功拉取 ${data.data.length} 个模型`);
+                notify(`成功拉取 ${data.data.length} 个模型`, "success");
+                // Save if none selected
+                if(!settingsObj.apiModelList && data.data.length > 0) {
+                    settingsObj.apiModelList = data.data[0].id;
+                    saveSettings();
+                }
             } else {
-                toastr.warning("未找到模型列表");
+                notify("未找到模型列表", "warning");
             }
         } catch (e) {
             console.error("Fetch models failed:", e);
-            toastr.error("拉取模型失败: " + e.message);
+            notify("拉取模型失败: " + e.message, "error");
         } finally {
-            $(this).html('<i class="fa-solid fa-cloud-arrow-down"></i> 拉取模型');
+            btn.html('<i class="fa-solid fa-cloud-arrow-down"></i> 拉取模型');
         }
     });
 
     // Bind Test Connection Button
-    $('#tgww_btn_test_conn').on('click', async function() {
+    $('body').on('click', '#tgww_btn_test_conn', async function() {
         const urlStr = $('#tgww_api_url').val() || settingsObj.apiUrl;
         const key = $('#tgww_api_key').val() || settingsObj.apiKey;
-        const model = $('#tgww_api_model').val() || settingsObj.apiModel || "gpt-3.5-turbo";
+        const model = $('#tgww_api_model_list').val() || settingsObj.apiModelList || "gpt-3.5-turbo";
+        const notify = (msg, type='info') => { if(window.toastr) toastr[type](msg); else alert(msg); };
+
         if (!urlStr) {
-            toastr.error("请先输入 API URL");
+            notify("请先输入 API URL", "error");
             return;
         }
-        $(this).html('<i class="fa-solid fa-spinner fa-spin"></i> 测试中');
+        if (!model) {
+            notify("请先选择或输入模型", "error");
+            return;
+        }
+        
+        const btn = $(this);
+        btn.html('<i class="fa-solid fa-spinner fa-spin"></i> 测试中');
         try {
             const res = await fetch(urlStr, {
                 method: 'POST',
@@ -489,15 +503,15 @@ async function initTgww() {
             }
             const data = await res.json();
             if (data && data.choices && data.choices[0] && data.choices[0].message) {
-                toastr.success("连接测试成功！");
+                notify("连接测试成功！", "success");
             } else {
-                toastr.warning("连接可能成功，但返回格式异常");
+                notify("连接可能成功，但返回格式异常", "warning");
             }
         } catch (e) {
             console.error("Test connection failed:", e);
-            toastr.error("测试连接失败: " + e.message);
+            notify("测试连接失败: " + e.message, "error");
         } finally {
-            $(this).html('<i class="fa-solid fa-plug"></i> 测试连接');
+            btn.html('<i class="fa-solid fa-plug"></i> 测试连接');
         }
     });
 
