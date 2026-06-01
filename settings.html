@@ -26,11 +26,10 @@
                     <label for="tgww_api_key">API Key:</label>
                     <input type="password" id="tgww_api_key" class="text_pole" placeholder="sk-..." />
                     
-                    <label for="tgww_api_model">自定义 API 模型:</label>
+                    <label for="tgww_api_model_name">自定义 API 模型:</label>
                     <div style="display: flex; gap: 5px; width: 100%;">
-                        <select id="tgww_api_model_list" class="text_pole" style="flex: 1;">
-                            <option value="">请输入API地址并拉取模型</option>
-                        </select>
+                        <input type="text" id="tgww_api_model_name" class="text_pole" list="tgww_api_model_list" placeholder="gpt-4o-mini 或点击右侧拉取" style="flex: 1;" />
+                        <datalist id="tgww_api_model_list"></datalist>
                         <button id="tgww_btn_fetch_models" class="menu_button" style="padding: 5px 10px; cursor: pointer; white-space: nowrap; border-radius: 5px;"><i class="fa-solid fa-cloud-arrow-down"></i> 拉取模型</button>
                     </div>
 

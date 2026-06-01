@@ -389,7 +389,7 @@ async function initTgww() {
     }
 
     // 绑定设置项事件
-    const inputs = ['tgww_enabled', 'tgww_api_mode', 'tgww_api_url', 'tgww_api_key', 'tgww_api_model_list'];
+    const inputs = ['tgww_enabled', 'tgww_api_mode', 'tgww_api_url', 'tgww_api_key', 'tgww_api_model_name'];
     inputs.forEach(id => {
         const el = $(`#${id}`);
         if (!el.length) return;
@@ -415,10 +415,11 @@ async function initTgww() {
     }
 
     // Bind Fetch Models Button
-    $('body').on('click', '#tgww_btn_fetch_models', async function() {
+    $('body').off('click', '#tgww_btn_fetch_models').on('click', '#tgww_btn_fetch_models', async function(e) {
+        e.preventDefault();
         const urlStr = $('#tgww_api_url').val() || settingsObj.apiUrl;
         const key = $('#tgww_api_key').val() || settingsObj.apiKey;
-        const notify = (msg, type='info') => { if(window.toastr) toastr[type](msg); else alert(msg); };
+        const notify = (msg, type='info') => { if(window.toastr && typeof window.toastr[type] === 'function') window.toastr[type](msg); else alert(msg); };
         
         if (!urlStr) {
             notify("请先输入 API URL", "error");
@@ -446,14 +447,12 @@ async function initTgww() {
                 const list = $('#tgww_api_model_list');
                 list.empty();
                 data.data.forEach(m => {
-                    const selected = m.id === settingsObj.apiModelList ? 'selected' : '';
-                    list.append(`<option value="${m.id}" ${selected}>${m.id}</option>`);
+                    list.append(`<option value="${m.id}">${m.id}</option>`);
                 });
-                notify(`成功拉取 ${data.data.length} 个模型`, "success");
+                notify(`成功拉取 ${data.data.length} 个模型，请在下拉列表选择。`, "success");
                 // Save if none selected
-                if(!settingsObj.apiModelList && data.data.length > 0) {
-                    settingsObj.apiModelList = data.data[0].id;
-                    saveSettings();
+                if(!$('#tgww_api_model_name').val() && data.data.length > 0) {
+                    $('#tgww_api_model_name').val(data.data[0].id).trigger('change');
                 }
             } else {
                 notify("未找到模型列表", "warning");
@@ -467,11 +466,12 @@ async function initTgww() {
     });
 
     // Bind Test Connection Button
-    $('body').on('click', '#tgww_btn_test_conn', async function() {
+    $('body').off('click', '#tgww_btn_test_conn').on('click', '#tgww_btn_test_conn', async function(e) {
+        e.preventDefault();
         const urlStr = $('#tgww_api_url').val() || settingsObj.apiUrl;
         const key = $('#tgww_api_key').val() || settingsObj.apiKey;
-        const model = $('#tgww_api_model_list').val() || settingsObj.apiModelList || "gpt-3.5-turbo";
-        const notify = (msg, type='info') => { if(window.toastr) toastr[type](msg); else alert(msg); };
+        const model = $('#tgww_api_model_name').val() || settingsObj.apiModelName || "gpt-3.5-turbo";
+        const notify = (msg, type='info') => { if(window.toastr && typeof window.toastr[type] === 'function') window.toastr[type](msg); else alert(msg); };
 
         if (!urlStr) {
             notify("请先输入 API URL", "error");
@@ -563,7 +563,7 @@ async function initTgww() {
     const openGameUI = () => {
         const wrap = $('#tgww_wrapper');
         if (wrap && wrap.length) {
-            wrap.fadeIn(200).css('display', 'flex');
+            wrap.css('display', 'flex').hide().fadeIn(200);
         } else {
             console.warn('[tgww] #tgww_wrapper element not found. UI might not be loaded yet.');
         }
