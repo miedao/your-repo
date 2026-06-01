@@ -148,7 +148,7 @@ function updateUI() {
     else $('#tgww_suspicion_bar').css('background', '#4ade80');
 }
 
-async function callLLM(systemPrompt, userPrompt) {
+async function callLLM(systemPrompt, userPrompt, expectJson = true) {
     const settings = loadSettings();
     let resultText = "";
     
@@ -184,7 +184,8 @@ async function callLLM(systemPrompt, userPrompt) {
     // Fallback to internal SillyTavern API if no result
     if (!resultText) {
         try {
-            const fullPrompt = systemPrompt + "\n\nUser Request: " + userPrompt + "\n\nOUTPUT ONLY PURE JSON FORMAT, no markdown blocks.";
+            const extraInst = expectJson ? "\n\nOUTPUT ONLY PURE JSON FORMAT, no markdown blocks." : "\n\nOUTPUT PURE TEXT/HTML, no markdown blocks.";
+            const fullPrompt = systemPrompt + "\n\nUser Request: " + userPrompt + extraInst;
             if (typeof window.generateRaw === 'function') {
                 resultText = await window.generateRaw(fullPrompt, true);
             } else if (typeof window.SillyTavern?.getContext().generateRaw === 'function') {
@@ -198,6 +199,7 @@ async function callLLM(systemPrompt, userPrompt) {
     }
     
     if (!resultText) return null;
+    if (!expectJson) return resultText.trim();
     
     // Safely parse JSON even if surrounded by markdown codeblocks
     try {
@@ -245,7 +247,7 @@ async function handleArrest(charName, charPersona, userName) {
 - 全程第三人称描写${charName}，第二人称描写${userName}。
 - 请直接输出纯内部HTML内容，不要加外层标签，不要使用Markdown代码块。`;
     
-    let story = await callLLM(sysPrompt, `请生成逮捕剧情HTML文本。`);
+    let story = await callLLM(sysPrompt, `请生成逮捕剧情HTML文本。`, false);
     
     // Fallback if API fails
     if (!story || typeof story === 'object') {
@@ -270,7 +272,7 @@ async function handleArrest(charName, charPersona, userName) {
 格式要求: 
 - 直接生成HTML，代码间绝对禁止生成空行，所有样式必须内联。
 - 不要加外层标签，不要Markdown代码块。`;
-        let eggStory = await callLLM(eggPrompt, "请生成彩蛋剧情。");
+        let eggStory = await callLLM(eggPrompt, "请生成彩蛋剧情。", false);
         if (!eggStory || typeof eggStory === 'object') {
             eggStory = `*在你沉睡的深夜里，${charName}独自坐在床边，捡起了那个被丢在地上的共感娃娃。他修长的指尖轻轻摩挲着娃娃的头顶和脸颊，似乎在回忆着白天从连接端传来的那一阵阵酥麻触感。他的嘴角勾起一抹连自己都没察觉到的温柔弧度，轻笑了一声：“真是个毫无防备又胆大妄为的家伙...下次，可不会这么轻易放过你了。”*`;
         }
@@ -389,12 +391,14 @@ async function initTgww() {
     }
 
     // 绑定设置项事件
-    const inputs = ['tgww_enabled', 'tgww_api_mode', 'tgww_api_url', 'tgww_api_key', 'tgww_api_model_name'];
+    const inputs = ['tgww_enabled', 'tgww_api_mode', 'tgww_api_url', 'tgww_api_key', 'tgww_api_model'];
     inputs.forEach(id => {
         const el = $(`#${id}`);
         if (!el.length) return;
         
-        const key = id.replace('tgww_', '');
+        const rawKey = id.replace('tgww_', '');
+        const key = rawKey.replace(/_([a-z])/g, (g) => g[1].toUpperCase()); // convert to camelCase
+        
         if(el.is(':checkbox')) el.prop('checked', settingsObj[key]);
         else el.val(settingsObj[key] || '');
         
@@ -425,23 +429,46 @@ async function initTgww() {
             notify("请先输入 API URL", "error");
             return;
         }
+        
         const btn = $(this);
         btn.html('<i class="fa-solid fa-spinner fa-spin"></i> 拉取中');
+        
+        let modelsUrl = urlStr;
+        if (modelsUrl.endsWith('/chat/completions')) {
+            modelsUrl = modelsUrl.replace('/chat/completions', '/models');
+        } else if (!modelsUrl.endsWith('/models')) {
+            if (modelsUrl.endsWith('/v1')) modelsUrl += '/models';
+            else modelsUrl = modelsUrl.replace(/\/?$/, '/v1/models');
+        }
+
         try {
-            // URL 修正：如果以 /chat/completions 结尾，替换为 /models
-            let modelsUrl = urlStr;
-            if (modelsUrl.endsWith('/chat/completions')) {
-                modelsUrl = modelsUrl.replace('/chat/completions', '/models');
-            } else if (!modelsUrl.endsWith('/models')) {
-                if (modelsUrl.endsWith('/v1')) modelsUrl += '/models';
-                else modelsUrl = modelsUrl.replace(/\/?$/, '/v1/models');
-            }
-            
-            const res = await fetch(modelsUrl, {
+            // First attempt direct fetch
+            let res = await fetch(modelsUrl, {
                 method: 'GET',
                 headers: { 'Authorization': `Bearer ${key}` }
-            });
-            if (!res.ok) throw new Error(`HTTP ${res.status}`);
+            }).catch(() => null); // Catch network/CORS errors silently for fallback
+
+            // Fallback to ST reverse proxy if direct fails
+            if (!res || !res.ok) {
+                console.log("[tgww] Direct fetch failed (CORS or network). Trying SillyTavern proxy...");
+                res = await fetch('/api/backends/custom/models', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-Token': window.SillyTavern?.getContext?.()?.csrf_token || ''
+                    },
+                    body: JSON.stringify({
+                        url: modelsUrl,
+                        key: key,
+                        reverse_proxy: modelsUrl.replace('/v1/models', '')
+                    })
+                });
+            }
+
+            if (!res.ok) {
+                const txt = await res.text();
+                throw new Error(`HTTP ${res.status}: ${txt}`);
+            }
             const data = await res.json();
             if (data && data.data && Array.isArray(data.data)) {
                 const list = $('#tgww_api_model_list');
@@ -451,15 +478,15 @@ async function initTgww() {
                 });
                 notify(`成功拉取 ${data.data.length} 个模型，请在下拉列表选择。`, "success");
                 // Save if none selected
-                if(!$('#tgww_api_model_name').val() && data.data.length > 0) {
-                    $('#tgww_api_model_name').val(data.data[0].id).trigger('change');
+                if(!$('#tgww_api_model').val() && data.data.length > 0) {
+                    $('#tgww_api_model').val(data.data[0].id).trigger('change');
                 }
             } else {
                 notify("未找到模型列表", "warning");
             }
         } catch (e) {
             console.error("Fetch models failed:", e);
-            notify("拉取模型失败: " + e.message, "error");
+            notify("拉取失败: 可能遇到CORS或URL错误。您可以直接在上方手动填写模型名称。", "error");
         } finally {
             btn.html('<i class="fa-solid fa-cloud-arrow-down"></i> 拉取模型');
         }
@@ -470,7 +497,7 @@ async function initTgww() {
         e.preventDefault();
         const urlStr = $('#tgww_api_url').val() || settingsObj.apiUrl;
         const key = $('#tgww_api_key').val() || settingsObj.apiKey;
-        const model = $('#tgww_api_model_name').val() || settingsObj.apiModelName || "gpt-3.5-turbo";
+        const model = $('#tgww_api_model').val() || settingsObj.apiModel || "gpt-3.5-turbo";
         const notify = (msg, type='info') => { if(window.toastr && typeof window.toastr[type] === 'function') window.toastr[type](msg); else alert(msg); };
 
         if (!urlStr) {
@@ -563,7 +590,7 @@ async function initTgww() {
     const openGameUI = () => {
         const wrap = $('#tgww_wrapper');
         if (wrap && wrap.length) {
-            wrap.css('display', 'flex').hide().fadeIn(200);
+            wrap.css({ opacity: 0, display: 'flex' }).animate({ opacity: 1 }, 200);
         } else {
             console.warn('[tgww] #tgww_wrapper element not found. UI might not be loaded yet.');
         }
